@@ -1,0 +1,9 @@
+log.info("firstname: " + firstname);
+log.info("lastname: " + lastname);
+
+if (firstname != void) {
+  request.setAttribute("firstname", firstname);
+  request.setAttribute("lastname", lastname);
+}
+
+view="index.jsp";
