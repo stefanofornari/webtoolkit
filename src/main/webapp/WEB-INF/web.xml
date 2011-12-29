@@ -17,6 +17,16 @@
 <web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
     <description>Copy the relevant information in this file into your application's web.xml</description>
     <display-name>BeanShell Servlet</display-name>
+    <context-param>
+        <description>Prefix for controllers</description>
+        <param-name>controllers-prefix</param-name>
+        <param-value>/</param-value>
+    </context-param>
+    <context-param>
+        <description>Prefix for views</description>
+        <param-name>views-prefix</param-name>
+        <param-value>/</param-value>
+    </context-param>
     <servlet>
         <servlet-name>BeanShellServlet</servlet-name>
         <servlet-class>ste.web.beanshell.BeanShellServlet</servlet-class>
