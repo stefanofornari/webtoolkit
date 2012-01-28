@@ -1,30 +1,35 @@
 /*
- * Copyright (C) 2011 Stefano Fornari.
- * All Rights Reserved.  No use, copying or distribution of this
- * work may be made except in accordance with a valid license
- * agreement from Stefano Fornari.  This notice must be
- * included on all copies, modifications and derivatives of this
- * work.
+ * BeanShell Servlet
+ * Copyright (C) 2011 Stefano Fornari
  *
- * Stefano Fornari MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY
- * OF THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. Funambol SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License version 3 as published by
+ * the Free Software Foundation with the addition of the following permission
+ * added to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED
+ * WORK IN WHICH THE COPYRIGHT IS OWNED BY Stefano Fornari, Stefano Fornari
+ * DISCLAIMS THE WARRANTY OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
  *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see http://www.gnu.org/licenses or write to
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301 USA.
  */
 
 package ste.web.beanshell;
 
 import java.io.*;
-import java.util.Enumeration;
 import java.util.logging.Logger;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
 
 import bsh.*;
+import java.util.Enumeration;
 import java.util.logging.Level;
 
 /**
@@ -126,17 +131,57 @@ extends HttpServlet {
 
     // --------------------------------------------------------- Private methods
 
+    /**
+     * This methods does the real work regardless the HTTP protocol used.
+     * It grabs the pathname of the script to be executed by the URI used to 
+     * invoke. 
+     * Note that if the request comes from an internal redirect, getRequestURI 
+     * returns the external URI (i.e. the one typed in the browser); in this 
+     * case the servlet engine sets the redirected URI properties in the 
+     * following attributes:
+     * <pre>
+     *   javax.servlet.forward.request_uri
+     *   javax.servlet.forward.context_path
+     *   javax.servlet.forward.servlet_path
+     *   javax.servlet.forward.path_info
+     *   javax.servlet.forward.query_string
+     * </pre>
+     * 
+     * Therefore we first check if the attribute <code>javax.servlet.forward.request_uri</code>
+     * is set; if set we directly use it, if not, we get the servlet URI calling
+     * <code>request.getRequestURI()</code>
+     * 
+     * @param request the request
+     * @param response the response
+     * @throws ServletException in case of engine exceptions
+     * @throws IOException in case of IO errors 
+     */
     private void doWork(final HttpServletRequest  request ,
                         final HttpServletResponse response)
     throws ServletException, IOException {
         if (log.isLoggable(Level.FINE)) {
-            log.fine("Serving " + request.getRequestURI());
+            Enumeration<String> names = request.getAttributeNames();
+            while(names.hasMoreElements()) {
+                String name = (String)names.nextElement();
+                log.fine(">> " + name + ": " + request.getAttribute(name));
+            }
+            
+        }
+        
+        String uri = (String)request.getAttribute("javax.servlet.include.request_uri");
+        if (uri == null) {
+            uri = request.getRequestURI();
+        } else {
+            uri = uri.substring(((String)request.getAttribute("javax.servlet.include.context_path")).length());
+        }
+        if (log.isLoggable(Level.FINE)) {
+            log.fine("Serving " + uri);
         }
 
         try {
             Interpreter interpreter = createInterpreter(request, response);
 
-            interpreter.eval(getScript(request));
+            interpreter.eval(getScript(getServletContext().getRealPath(uri)));
             
             String nextView = (String)interpreter.get("view");
             if ((nextView != null) && (nextView instanceof String)) {
@@ -146,7 +191,7 @@ extends HttpServlet {
                     log.fine("Forwarding to " + nextView);
                 }
                 
-                request.getRequestDispatcher(nextView).forward(request, response);
+                request.getRequestDispatcher(nextView).include(request, response);
             }
         } catch (Exception e) {
             handleError(request, response, e);
@@ -183,10 +228,19 @@ extends HttpServlet {
         return interpreter;
     }
 
-    private String getScript(final HttpServletRequest request)
+    /**
+     * Returns the script to be invoked. @see doWork() for more information on
+     * how local redirects are handled.
+     * 
+     * @param request
+     * 
+     * @return the beanshell script to be invoked
+     * 
+     * @throws IOException if there are issues reading the script
+     */
+    private String getScript(final String script)
     throws IOException {
-        String script     = request.getServletPath();
-        File   scriptFile = new File(request.getSession().getServletContext().getRealPath(script));
+        File   scriptFile     = new File(script);
         String controllerPath = scriptFile.getParent() + controllersPrefix;
         File   controllerFile = new File(controllerPath, scriptFile.getName());
         
