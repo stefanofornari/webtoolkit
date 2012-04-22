@@ -82,6 +82,7 @@ extends HttpServlet {
     private static String viewsPrefix       = "views"      ;
 
     // ---------------------------------------------------------- Public methods
+    @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
 
@@ -112,17 +113,19 @@ extends HttpServlet {
         }
         
         if (log.isLoggable(Level.FINE)) {
-            log.fine("controllers-prefix: " + controllersPrefix);
-            log.fine("views-prefix: " + viewsPrefix);
+            log.log(Level.FINE, "controllers-prefix: {0}", controllersPrefix);
+            log.log(Level.FINE, "views-prefix: {0}", viewsPrefix);
         }
     }
 
+    @Override
     public void doGet(final HttpServletRequest  request ,
                       final HttpServletResponse response)
     throws ServletException, IOException {
         doWork(request, response);
     }
 
+    @Override
     public void doPost(final HttpServletRequest  request ,
                       final HttpServletResponse response)
     throws ServletException, IOException {
@@ -163,7 +166,9 @@ extends HttpServlet {
             Enumeration<String> names = request.getAttributeNames();
             while(names.hasMoreElements()) {
                 String name = (String)names.nextElement();
-                log.fine(">> " + name + ": " + request.getAttribute(name));
+                if (name.startsWith("javx.servlet"))  {
+                    log.log(Level.FINE, ">> {0}: {1}", new Object[]{name, request.getAttribute(name)});
+                }
             }
             
         }
@@ -175,7 +180,7 @@ extends HttpServlet {
             uri = uri.substring(((String)request.getAttribute("javax.servlet.include.context_path")).length());
         }
         if (log.isLoggable(Level.FINE)) {
-            log.fine("Serving " + uri);
+            log.log(Level.FINE, "Serving {0}", uri);
         }
 
         try {
@@ -188,7 +193,7 @@ extends HttpServlet {
                 nextView = viewsPrefix + nextView;
                 
                 if (log.isLoggable(Level.FINE)) {
-                    log.fine("Forwarding to " + nextView);
+                    log.log(Level.FINE, "Forwarding to {0}", nextView);
                 }
                 
                 request.getRequestDispatcher(nextView).include(request, response);
@@ -245,8 +250,8 @@ extends HttpServlet {
         File   controllerFile = new File(controllerPath, scriptFile.getName());
         
         if (log.isLoggable(Level.FINE)) {
-            log.fine("script: " + script);
-            log.fine("controllerFile: " + controllerFile);
+            log.log(Level.FINE, "script: {0}", script);
+            log.log(Level.FINE, "controllerFile: {0}", controllerFile);
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -291,15 +296,15 @@ extends HttpServlet {
         String msg = t.getMessage();
 
         if (log.isLoggable(Level.SEVERE)) {
-            log.severe("Error message: " + msg);
+            log.log(Level.SEVERE, "Error message: {0}", msg);
             log.throwing(getClass().getName(), "handleError", t);
         }
         
         try {
             if (t instanceof FileNotFoundException) {
-                response.sendError(response.SC_NOT_FOUND, msg);
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, msg);
             } else {
-                response.sendError(response.SC_BAD_REQUEST, msg);
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, msg);
             }
         } catch (IOException e) {
             if (log.isLoggable(Level.SEVERE)) {
