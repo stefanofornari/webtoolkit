@@ -175,7 +175,7 @@ extends HttpServlet {
         
         String uri = (String)request.getAttribute("javax.servlet.include.request_uri");
         if (uri == null) {
-            uri = request.getRequestURI();
+            uri = request.getServletPath();
         } else {
             uri = uri.substring(((String)request.getAttribute("javax.servlet.include.context_path")).length());
         }
