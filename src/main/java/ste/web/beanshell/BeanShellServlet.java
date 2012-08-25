@@ -61,6 +61,10 @@ import java.util.logging.Level;
  * 
  * <i>controllers-prefix</i> and <i>views-prefix</i> defauult to "".
  * 
+ * In addition to scripts Beanshell can be extended with commands, which must be
+ * located somewhere under the classpath. BeanShellServlet instructs Beanshell
+ * to search for commands under <pre>WEB-INF/commands</pre>.
+ * 
  * @author ste
  */
 public class BeanShellServlet
@@ -78,8 +82,9 @@ extends HttpServlet {
 
     private static final Logger log = Logger.getLogger(LOG_NAME);
     
-    private static String controllersPrefix = "controllers";
-    private static String viewsPrefix       = "views"      ;
+    private String controllersPrefix = "controllers";
+    private String viewsPrefix       = "views"      ;
+    private String contextRealPath   = null         ;
 
     // ---------------------------------------------------------- Public methods
     @Override
@@ -112,9 +117,12 @@ extends HttpServlet {
             }
         }
         
+        contextRealPath = context.getRealPath("");
+        
         if (log.isLoggable(Level.FINE)) {
             log.log(Level.FINE, "controllers-prefix: {0}", controllersPrefix);
             log.log(Level.FINE, "views-prefix: {0}", viewsPrefix);
+            log.log(Level.FINE, "context path: {0}", contextRealPath);
         }
     }
 
@@ -166,7 +174,7 @@ extends HttpServlet {
             Enumeration<String> names = request.getAttributeNames();
             while(names.hasMoreElements()) {
                 String name = (String)names.nextElement();
-                if (name.startsWith("javx.servlet"))  {
+                if (name.startsWith("javax.servlet"))  {
                     log.log(Level.FINE, ">> {0}: {1}", new Object[]{name, request.getAttribute(name)});
                 }
             }
@@ -208,7 +216,12 @@ extends HttpServlet {
                                           final HttpServletResponse response)
     throws EvalError, IOException {
         Interpreter interpreter = new Interpreter();
-
+        
+        //
+        // Add commands path
+        //
+        interpreter.eval("addClassPath(\"" + contextRealPath + "\"); importCommands(\"/WEB-INF/commands\")");
+        
         //
         // Set request parameters as script variables
         //
