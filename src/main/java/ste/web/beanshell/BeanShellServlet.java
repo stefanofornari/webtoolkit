@@ -223,11 +223,20 @@ extends HttpServlet {
         interpreter.eval("addClassPath(\"" + contextRealPath + "\"); importCommands(\"/WEB-INF/commands\")");
         
         //
-        // Set request parameters as script variables
+        // Set attributes as script variables
         //
         String key;
+        for (Enumeration e = request.getAttributeNames(); e.hasMoreElements();) {
+            key = ((String)e.nextElement()).replaceAll("\\.", "_");
+            interpreter.set(key, request.getAttribute(key));
+        }
+        
+        //
+        // Set request parameters as script variables. Note that parameters
+        // override attributes
+        //
         for (Enumeration e = request.getParameterNames(); e.hasMoreElements();) {
-            key = (String)e.nextElement();
+            key = ((String)e.nextElement()).replaceAll("\\.", "_");
             interpreter.set(key, request.getParameter(key));
         }
 
@@ -236,12 +245,6 @@ extends HttpServlet {
         interpreter.set("session" , request.getSession(false) );
         interpreter.set("out"     , response.getWriter()      );
         interpreter.set("log"     , log                       );
-
-        //
-        // Import common commands... I am commenting it out for now; I will 
-        // reintroduce it if and when I will add the helpers
-        //
-        //interpreter.eval("importCommands(\"commands\");");
 
         return interpreter;
     }
