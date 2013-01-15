@@ -6,4 +6,4 @@ if (firstname != void) {
   request.setAttribute("lastname", lastname);
 }
 
-view="index.jsp";
+view="index.html";

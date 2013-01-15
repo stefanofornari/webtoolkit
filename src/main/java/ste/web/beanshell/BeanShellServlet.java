@@ -1,6 +1,6 @@
 /*
- * BeanShell Servlet
- * Copyright (C) 2011 Stefano Fornari
+ * BeanShell Web
+ * Copyright (C) 2012 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -31,6 +31,8 @@ import javax.servlet.http.*;
 import bsh.*;
 import java.util.Enumeration;
 import java.util.logging.Level;
+
+import static ste.web.beanshell.Constants.*;
 
 /**
  * Executes the bsh script specified by the URL. The script is the controller
@@ -67,26 +69,17 @@ import java.util.logging.Level;
  * 
  * @author ste
  */
-public class BeanShellServlet
-extends HttpServlet {
-    // --------------------------------------------------------------- Constants
-
-    public static final String LOG_NAME = "ste.web";
+public class BeanShellServlet extends HttpServlet {
     
-    public static final String PARAM_CONTROLLERS          = "controllers-prefix";
-    public static final String PARAM_VIEWS                = "views-prefix"      ;
-    public static final String DEFAULT_CONTROLLERS_PREFIX = "/"                 ;
-    public static final String DEFAULT_VIEWS_PREFIX       = "/"                 ;
-
-    // ------------------------------------------------------------ Private data
-
-    private static final Logger log = Logger.getLogger(LOG_NAME);
+    // ---------------------------------------------------------- Protected data
     
-    private String controllersPrefix = "controllers";
-    private String viewsPrefix       = "views"      ;
-    private String contextRealPath   = null         ;
+    protected static final Logger log = Logger.getLogger(LOG_NAME);
+    protected String contextRealPath = null;
+    protected String controllersPrefix = "controllers";
+    protected String viewsPrefix = "views";
 
     // ---------------------------------------------------------- Public methods
+    
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
@@ -95,7 +88,7 @@ extends HttpServlet {
         
         controllersPrefix = context.getInitParameter(PARAM_CONTROLLERS);
         if (controllersPrefix == null) {
-            controllersPrefix = context.getInitParameter(DEFAULT_CONTROLLERS_PREFIX);
+            controllersPrefix = DEFAULT_CONTROLLERS_PREFIX;
         } else {
             //
             // let's fix a common mistake :)
@@ -107,7 +100,7 @@ extends HttpServlet {
         
         viewsPrefix = context.getInitParameter(PARAM_VIEWS);
         if (viewsPrefix == null) {
-            context.getInitParameter(DEFAULT_VIEWS_PREFIX);
+            viewsPrefix = DEFAULT_VIEWS_PREFIX;
         }  else {
             //
             // let's fix a common mistake :)
@@ -192,9 +185,17 @@ extends HttpServlet {
         }
 
         try {
-            Interpreter interpreter = createInterpreter(request, response);
+            Interpreter interpreter = new Interpreter();
+            BeanShellUtils.setup(interpreter, request, response);
+            interpreter.set("log", log);
+            
+            //
+            // Add commands path
+            //
+            interpreter.eval("addClassPath(\"" + contextRealPath + "\"); importCommands(\"/WEB-INF/commands\")");
 
-            interpreter.eval(getScript(getServletContext().getRealPath(uri)));
+            String s = getServletContext().getRealPath(uri);
+            interpreter.eval(getScript(s));
             
             String nextView = (String)interpreter.get("view");
             if ((nextView != null) && (nextView instanceof String)) {
@@ -210,91 +211,6 @@ extends HttpServlet {
             handleError(request, response, e);
         }
 
-    }
-
-    private Interpreter createInterpreter(final HttpServletRequest  request ,
-                                          final HttpServletResponse response)
-    throws EvalError, IOException {
-        Interpreter interpreter = new Interpreter();
-        
-        //
-        // Add commands path
-        //
-        interpreter.eval("addClassPath(\"" + contextRealPath + "\"); importCommands(\"/WEB-INF/commands\")");
-        
-        //
-        // Set attributes as script variables
-        //
-        String key;
-        for (Enumeration e = request.getAttributeNames(); e.hasMoreElements();) {
-            key = ((String)e.nextElement()).replaceAll("\\.", "_");
-            interpreter.set(key, request.getAttribute(key));
-        }
-        
-        //
-        // Set request parameters as script variables. Note that parameters
-        // override attributes
-        //
-        for (Enumeration e = request.getParameterNames(); e.hasMoreElements();) {
-            key = ((String)e.nextElement()).replaceAll("\\.", "_");
-            interpreter.set(key, request.getParameter(key));
-        }
-
-        interpreter.set("request" , request                   );
-        interpreter.set("response", response                  );
-        interpreter.set("session" , request.getSession(false) );
-        interpreter.set("out"     , response.getWriter()      );
-        interpreter.set("log"     , log                       );
-
-        return interpreter;
-    }
-
-    /**
-     * Returns the script to be invoked. @see doWork() for more information on
-     * how local redirects are handled.
-     * 
-     * @param request
-     * 
-     * @return the beanshell script to be invoked
-     * 
-     * @throws IOException if there are issues reading the script
-     */
-    private String getScript(final String script)
-    throws IOException {
-        File   scriptFile     = new File(script);
-        String controllerPath = scriptFile.getParent() + controllersPrefix;
-        File   controllerFile = new File(controllerPath, scriptFile.getName());
-        
-        if (log.isLoggable(Level.FINE)) {
-            log.log(Level.FINE, "script: {0}", script);
-            log.log(Level.FINE, "controllerFile: {0}", controllerFile);
-        }
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        FileInputStream       is   = null;
-
-        try {
-            is = new FileInputStream(controllerFile);
-
-            if (is == null) {
-                throw new FileNotFoundException(script);
-            }
-
-            byte[] buf = new byte[1024];
-            int n = 0;
-            while ((n = is.read(buf))>=0) {
-                baos.write(buf, 0, n);
-            }
-
-            return "try { " + baos.toString() + "} catch (Throwable t) { t.printStackTrace(); throw t; }";
-        } finally {
-            if (is != null) {
-                is.close();
-            }
-            if (baos != null) {
-                baos.close();
-            }
-        }
     }
 
     /**
@@ -328,5 +244,27 @@ extends HttpServlet {
                 log.throwing(getClass().getName(), "handleError", e);
             }
         }
+    }
+    
+    /**
+     * Returns the script to be invoked. @see doWork() for more information on
+     * how local redirects are handled.
+     *
+     * @param script the script name to start to build the real pathname
+     *
+     * @return the beanshell script to be invoked
+     *
+     * @throws IOException if there are issues reading the script
+     */
+    private String getScript(final String script) throws IOException {
+        File scriptFile = new File(script);
+        String controllerPath = scriptFile.getParent() + controllersPrefix;
+        File controllerFile = new File(controllerPath, scriptFile.getName());
+        if (log.isLoggable(Level.FINE)) {
+            log.log(Level.FINE, "script: {0}", script);
+            log.log(Level.FINE, "controllerFile: {0}", controllerFile);
+        }
+        
+        return BeanShellUtils.getScript(controllerFile);
     }
 }
