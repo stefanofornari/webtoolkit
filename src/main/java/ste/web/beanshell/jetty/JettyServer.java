@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -22,33 +23,25 @@ import static ste.web.beanshell.Constants.*;
 
 public class JettyServer {
     
+    private Server server;
+    
     public static final String ROOT = "src/main/webapp/console";
     
     public JettyServer() {
-    }
-
-    public void handle(String target,
-            Request baseRequest,
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws IOException, ServletException {
-        response.setContentType("text/html;charset=utf-8");
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        //request.setAttribute(target, this);
-        throw new ServletException("CHECK!", new Exception());
-        //response.sendError(HttpServletResponse.SC_NOT_FOUND, "Error!");
-        //baseRequest.setHandled(true);
-        //response.getWriter().println("<h1>Hello World</h1><p>" + request.getPathTranslated());
-    }
-
-    public static void main(String[] args) throws Exception {
-        Server server = new Server(8080);
+        server = new Server(8080);
         
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         context.setInitParameter(PARAM_CONTROLLERS, "/c");
         context.setInitParameter(PARAM_VIEWS, "/v");
-        context.setBaseResource(Resource.newResource(new File(ROOT)));
+        try {
+            context.setBaseResource(Resource.newResource(new File(ROOT)));
+        } catch (Exception e) {
+            //
+            // this should not happen!
+            //
+            throw new RuntimeException("Unexpected error: " + e.getMessage(), e);
+        }
         context.addServlet(new ServletHolder(new BeanShellServlet()),"*.bsh");
         
         ResourceHandler resourceHandler = new ResourceHandler();
@@ -66,8 +59,24 @@ public class JettyServer {
         sh.setHandler(handlers);
         server.setHandler(sh);
         server.setAttribute(ATTRIBUTE_APP_ROOT, ROOT);
+    }
+    
+    public boolean start() {
+        try {
+            server.start();
+            server.join();
+        } catch (Exception e) {
+            //
+            // TODO: log the error?
+            //
+            e.printStackTrace();
+            return false;
+        }
+        
+        return true;
+    }
 
-        server.start();
-        server.join();
+    public static void main(String[] args) {
+        new JettyServer().start();
     }
 }

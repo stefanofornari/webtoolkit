@@ -29,6 +29,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -47,6 +48,10 @@ public abstract class BeanShellUtils {
     public static final String LOG_NAME = "ste.web";
     public static final String PARAM_CONTROLLERS = "controllers-prefix";
     public static final String PARAM_VIEWS = "views-prefix";
+    
+    public static final Logger log = Logger.getLogger(LOG_NAME);
+    
+    // ---------------------------------------------------------- Public methods
     
     /**
      * Reads the given script enclosing it into a try-catch block.
@@ -103,10 +108,11 @@ public abstract class BeanShellUtils {
             interpreter.set(key, request.getParameter(key));
         }
         
-        interpreter.set(VAR_REQUEST, request);
-        interpreter.set(VAR_RESPONSE, response);
-        interpreter.set(VAR_SESSION, request.getSession(false));
-        interpreter.set(VAR_OUT, response.getWriter());
+        interpreter.set(VAR_REQUEST,  request                  );
+        interpreter.set(VAR_RESPONSE, response                 );
+        interpreter.set(VAR_SESSION,  request.getSession(false));
+        interpreter.set(VAR_OUT,      response.getWriter()     );
+        interpreter.set(VAR_LOG,      log                      );
         
         return interpreter;
     }

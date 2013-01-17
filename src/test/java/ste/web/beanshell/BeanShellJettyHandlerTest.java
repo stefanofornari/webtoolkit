@@ -36,7 +36,6 @@ import org.junit.Before;
 
 import static ste.web.beanshell.Constants.*;
 import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.server.session.SessionHandler;
 import ste.web.beanshell.jelly.test.TestSession;
 
 /**
@@ -72,7 +71,6 @@ public class BeanShellJettyHandlerTest {
         response = new Response();
         handler = new BeanShellJettyHandler();
         server = new Server();
-        
         server.setAttribute(ATTRIBUTE_APP_ROOT, "src/test/resources");
         
         handler.setServer(server);
@@ -159,10 +157,13 @@ public class BeanShellJettyHandlerTest {
         assertSame(i.get(VAR_REQUEST), request);
         assertSame(i.get(VAR_RESPONSE), response);
         assertSame(i.get(VAR_SESSION), session);
+        assertNotNull(i.get(VAR_LOG));
         assertNotNull(i.get(VAR_OUT));
-        //
-        // TODO: add log
-        //
+    }
+    
+    @Test
+    public void urlParameters() {
+        
     }
     
     // --------------------------------------------------------- Private methods
