@@ -1,5 +1,4 @@
-import java.io.ByteOutputStream;
-import java.io.PrintStream;
+import java.io.*;
 
 result = "";
 
@@ -11,5 +10,8 @@ if (script != void) {
   result = new String(o.toByteArray());
   this.interpreter.out = old;
 }
+
+sourceFile = new File(source);
+viewFile = new File(sourceFile.getParent(), "main.html");
 
 view = "main.vv";
