@@ -86,9 +86,9 @@ public abstract class BeanShellUtils {
         }
     }
     
-    public static Interpreter setup(final Interpreter         interpreter,
-                                    final HttpServletRequest  request    , 
-                                    final HttpServletResponse response   ) 
+    public static void setup(final Interpreter         interpreter,
+                             final HttpServletRequest  request    , 
+                             final HttpServletResponse response   ) 
     throws EvalError, IOException {    
         //
         // Set attributes as script variables
@@ -113,7 +113,5 @@ public abstract class BeanShellUtils {
         interpreter.set(VAR_SESSION,  request.getSession(false));
         interpreter.set(VAR_OUT,      response.getWriter()     );
         interpreter.set(VAR_LOG,      log                      );
-        
-        return interpreter;
     }
 }
