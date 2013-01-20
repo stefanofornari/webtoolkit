@@ -24,9 +24,11 @@ package ste.web.beanshell;
 import bsh.EvalError;
 import bsh.Interpreter;
 import java.lang.reflect.Method;
+import java.util.Enumeration;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpSession;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
@@ -44,6 +46,18 @@ import ste.web.beanshell.jelly.test.TestSession;
  */
 public class BeanShellJettyHandlerTest {
     
+    public static final String TEST_URL_PARAM1 = "p_one";
+    public static final String TEST_URL_PARAM2 = "p_two";
+    public static final String TEST_URL_PARAM3 = "p_three";
+    
+    public static final String TEST_REQ_ATTR_NAME1 = "a_one";
+    public static final String TEST_REQ_ATTR_NAME2 = "a_two";
+    public static final String TEST_REQ_ATTR_NAME3 = "a_three";
+    
+    public static final String TEST_VALUE1 = "uno";
+    public static final String TEST_VALUE2 = "due";
+    public static final String TEST_VALUE3 = "tre";
+    
     public static final String TEST_URI1 = "/firstlevelscript.bsh";
     public static final String TEST_URI2 = "/first/secondlevelscript.bsh";
     public static final String TEST_URI3 = "/firstlevelcontroller.bsh";
@@ -52,6 +66,19 @@ public class BeanShellJettyHandlerTest {
     public static final String TEST_URI6 = "/withevalerror.bsh";
     public static final String TEST_URI7 = "/withtargeterror.bsh";
     public static final String TEST_URI8 = "/nobsh";
+    public static final String TEST_URI9 = "/uri/with/parameters?"
+                                         + TEST_URL_PARAM1
+                                         + "="
+                                         + TEST_VALUE1
+                                         + "&"
+                                         + TEST_URL_PARAM2
+                                         + "="
+                                         + TEST_VALUE2
+                                         + "&"
+                                         + TEST_URL_PARAM3
+                                         + "="
+                                         + TEST_VALUE3
+                                         ;
     
     private TestRequest request;
     private Response response;
@@ -68,6 +95,10 @@ public class BeanShellJettyHandlerTest {
     @Before
     public void startUp() throws Exception {
         request = new TestRequest();
+        request.setUri(new HttpURI(TEST_URI9));
+        request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
+        request.setAttribute(TEST_REQ_ATTR_NAME2, TEST_VALUE2);
+        request.setAttribute(TEST_REQ_ATTR_NAME3, TEST_VALUE3);
         response = new Response();
         handler = new BeanShellJettyHandler();
         server = new Server();
@@ -162,8 +193,25 @@ public class BeanShellJettyHandlerTest {
     }
     
     @Test
-    public void urlParameters() {
-        
+    public void requestParameters() throws Exception {
+        handler.handle(TEST_URI1, request, request, response);
+        Interpreter i = handler.getInterpreter();
+        Enumeration<String> params = request.getParameterNames();
+        while (params.hasMoreElements()) {
+            String param = params.nextElement();
+            assertEquals(request.getParameter(param), i.get(param));
+        }
+    }
+    
+    @Test
+    public void requestAttributes() throws Exception {
+        handler.handle(TEST_URI1, request, request, response);
+        Interpreter i = handler.getInterpreter();
+        Enumeration<String> attrs = request.getAttributeNames();
+        while (attrs.hasMoreElements()) {
+            String attr = attrs.nextElement();
+            assertEquals(request.getAttribute(attr), i.get(attr));
+        }
     }
     
     // --------------------------------------------------------- Private methods
