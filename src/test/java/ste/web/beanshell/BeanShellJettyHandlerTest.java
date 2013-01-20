@@ -23,6 +23,7 @@ package ste.web.beanshell;
 
 import bsh.EvalError;
 import bsh.Interpreter;
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Enumeration;
 import javax.servlet.ServletException;
@@ -190,6 +191,10 @@ public class BeanShellJettyHandlerTest {
         assertSame(i.get(VAR_SESSION), session);
         assertNotNull(i.get(VAR_LOG));
         assertNotNull(i.get(VAR_OUT));
+        assertEquals(
+            new File((String)server.getAttribute(ATTRIBUTE_APP_ROOT), TEST_URI1).getAbsolutePath(),
+            handler.getInterpreter().get(VAR_SOURCE)
+        );
     }
     
     @Test

@@ -34,6 +34,7 @@ public interface Constants {
     public static final String PARAM_VIEWS = "views-prefix";
     public static final String ATTRIBUTE_APP_ROOT = "WEBROOT";
     
+    public static final String VAR_SOURCE   = "source"  ;
     public static final String VAR_REQUEST  = "request" ;
     public static final String VAR_RESPONSE = "response";
     public static final String VAR_SESSION  = "session" ;

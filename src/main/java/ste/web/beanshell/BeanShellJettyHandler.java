@@ -88,9 +88,6 @@ public class BeanShellJettyHandler extends AbstractHandler {
                        HttpServletResponse hresponse) throws IOException, ServletException {
         request.setHandled(false);
         
-        //
-        // TODO: handle parameters
-        //
         if (!uri.endsWith(".bsh")) {
             return;
         }
@@ -107,13 +104,14 @@ public class BeanShellJettyHandler extends AbstractHandler {
                 setControllersFolder('/' + getControllersFolder());
             }
         }
-        
+
         File scriptFile = new File(root, uri);
         String controllerPath = scriptFile.getParent() + getControllersFolder();
         scriptFile = new File(controllerPath, scriptFile.getName());
         
         try {
             BeanShellUtils.setup(bsh, hrequest, hresponse);
+            bsh.set(VAR_SOURCE, scriptFile.getAbsolutePath());
             bsh.eval(BeanShellUtils.getScript(scriptFile));
             request.setHandled(true);
         } catch (FileNotFoundException e) {
