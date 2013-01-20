@@ -1,2 +1,15 @@
-eval(script);
+import java.io.ByteOutputStream;
+import java.io.PrintStream;
 
+result = "";
+
+if (script != void) {
+  PrintStream old = this.interpreter.out;
+  ByteArrayOutputStream o = new ByteArrayOutputStream();
+  this.interpreter.out = new PrintStream(o);
+  eval(script);
+  result = new String(o.toByteArray());
+  this.interpreter.out = old;
+}
+
+view = "main.vv";
