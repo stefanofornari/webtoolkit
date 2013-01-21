@@ -1,4 +1,6 @@
 import java.io.*;
+import java.util.regex.Matcher;
+import org.apache.commons.io.IOUtils;
 
 result = "";
 
@@ -6,12 +8,24 @@ if (script != void) {
   PrintStream old = this.interpreter.out;
   ByteArrayOutputStream o = new ByteArrayOutputStream();
   this.interpreter.out = new PrintStream(o);
-  eval(script);
+  try {
+    eval(script);
+  } catch (Exception e) {
+    print("Error evaluating the script: " + e.getMessage());
+    e.printStackTrace(this.interpreter.out);
+  }
   result = new String(o.toByteArray());
   this.interpreter.out = old;
 }
 
 sourceFile = new File(source);
 viewFile = new File(sourceFile.getParent(), "main.html");
+
+String template = IOUtils.toString(new FileInputStream(viewFile));
+
+result = Matcher.quoteReplacement(result);
+script = (script == void) ? "" : Matcher.quoteReplacement(script);
+response.writer.write(template.replaceAll("__result__", result)
+                              .replaceAll("__script__", script));
 
 view = "main.vv";

@@ -21,12 +21,10 @@
  */
 package ste.web.beanshell.console;
 
+import org.eclipse.jetty.server.Response;
 import static org.junit.Assert.*;
 import        org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-import javax.servlet.http.HttpSession;
 import org.eclipse.jetty.server.session.HashSessionManager;
 import ste.web.beanshell.Constants;
 import ste.web.beanshell.jelly.test.TestRequest;
@@ -42,6 +40,7 @@ public class ConsoleControllerTest extends BeanShellTest
     public static final String TEST_VALUE1 = "Hello world";
     public static final String TEST_SCRIPT1 = "s = \"%s\";";
     public static final String TEST_SCRIPT2 = "print(\"%s\");";
+    public static final String TEST_SCRIPT_ERROR = "an error";
     
     public ConsoleControllerTest() throws Exception {
         setCommandsDirectory("src/main/webapp/WEB-INF/commands");
@@ -54,6 +53,8 @@ public class ConsoleControllerTest extends BeanShellTest
         r.setSessionManager(new HashSessionManager());
         
         beanshell.set("request", r);
+        beanshell.set("source", "src/main/webapp/console/c/exec.bsh");
+        beanshell.set("response", new Response());
         //beanshell.set("session", r.getSession());
     }
     
@@ -81,5 +82,15 @@ public class ConsoleControllerTest extends BeanShellTest
         
         assertEquals(TEST_VALUE1+"\n", beanshell.get("result"));
     
+    }
+    
+    @Test
+    public void scriptError() throws Exception {
+        beanshell.set("script", TEST_SCRIPT_ERROR);
+        
+        exec();
+        
+        String result =(String)beanshell.get("result");
+        assertTrue(result.startsWith("Error"));
     }
 }
