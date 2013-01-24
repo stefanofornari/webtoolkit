@@ -19,8 +19,9 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.web.beanshell;
+package ste.web.beanshell.jetty;
 
+import ste.web.beanshell.jetty.BeanShellHandler;
 import bsh.EvalError;
 import bsh.Interpreter;
 import java.io.File;
@@ -45,7 +46,7 @@ import ste.web.beanshell.jelly.test.TestSession;
  *
  * @author ste
  */
-public class BeanShellJettyHandlerTest {
+public class BeanShellHandlerTest {
     
     public static final String TEST_URL_PARAM1 = "p_one";
     public static final String TEST_URL_PARAM2 = "p_two";
@@ -84,9 +85,9 @@ public class BeanShellJettyHandlerTest {
     private TestRequest request;
     private Response response;
     private Server server;
-    private BeanShellJettyHandler handler;
+    private BeanShellHandler handler;
     
-    public BeanShellJettyHandlerTest() {
+    public BeanShellHandlerTest() {
         request = null;
         response = null;
         server = null;
@@ -101,9 +102,9 @@ public class BeanShellJettyHandlerTest {
         request.setAttribute(TEST_REQ_ATTR_NAME2, TEST_VALUE2);
         request.setAttribute(TEST_REQ_ATTR_NAME3, TEST_VALUE3);
         response = new Response();
-        handler = new BeanShellJettyHandler();
+        handler = new BeanShellHandler();
         server = new Server();
-        server.setAttribute(ATTRIBUTE_APP_ROOT, "src/test/resources");
+        server.setAttribute(ATTR_APP_ROOT, "src/test/resources");
         
         handler.setServer(server);
         simulateStart(handler);
@@ -112,18 +113,18 @@ public class BeanShellJettyHandlerTest {
     @Test
     public void interpreterSetUp() throws Exception {
         assertNotNull(handler.getInterpreter());       
-        assertNull(new BeanShellJettyHandler().getInterpreter());
+        assertNull(new BeanShellHandler().getInterpreter());
     }
 
     @Test
     public void execScriptDefaultDirs() throws Exception {
         handler.handle(TEST_URI1, request, request, response);
-        assertTrue(request.isHandled());
+        assertFalse(request.isHandled());
         assertNotNull(handler.getInterpreter().get("first"));
         
         handler.handle(TEST_URI2, request, request, response);
         assertNotNull(handler.getInterpreter().get("second"));
-        assertTrue(request.isHandled());
+        assertFalse(request.isHandled());
     }
     
     @Test
@@ -192,7 +193,7 @@ public class BeanShellJettyHandlerTest {
         assertNotNull(i.get(VAR_LOG));
         assertNotNull(i.get(VAR_OUT));
         assertEquals(
-            new File((String)server.getAttribute(ATTRIBUTE_APP_ROOT), TEST_URI1).getAbsolutePath(),
+            new File((String)server.getAttribute(ATTR_APP_ROOT), TEST_URI1).getAbsolutePath(),
             handler.getInterpreter().get(VAR_SOURCE)
         );
     }
@@ -222,7 +223,7 @@ public class BeanShellJettyHandlerTest {
     // --------------------------------------------------------- Private methods
     
     private void simulateStart(AbstractHandler h) throws Exception {
-        Method m = BeanShellJettyHandler.class.getDeclaredMethod("doStart");
+        Method m = BeanShellHandler.class.getDeclaredMethod("doStart");
         m.setAccessible(true);
         m.invoke(h);
     }

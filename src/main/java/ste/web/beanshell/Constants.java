@@ -32,7 +32,8 @@ public interface Constants {
     public static final String LOG_NAME = "ste.web";
     public static final String PARAM_CONTROLLERS = "controllers-prefix";
     public static final String PARAM_VIEWS = "views-prefix";
-    public static final String ATTRIBUTE_APP_ROOT = "WEBROOT";
+    public static final String ATTR_APP_ROOT = "WEBROOT";
+    public static final String ATTR_VIEW = "view";
     
     public static final String VAR_SOURCE   = "source"  ;
     public static final String VAR_REQUEST  = "request" ;

@@ -41,6 +41,7 @@ public class ConsoleControllerTest extends BeanShellTest
     public static final String TEST_SCRIPT1 = "s = \"%s\";";
     public static final String TEST_SCRIPT2 = "print(\"%s\");";
     public static final String TEST_SCRIPT_ERROR = "an error";
+    public static final String TEST_VIEW = "main.v";
     
     public ConsoleControllerTest() throws Exception {
         setCommandsDirectory("src/main/webapp/WEB-INF/commands");
@@ -71,7 +72,9 @@ public class ConsoleControllerTest extends BeanShellTest
         
         exec();
         
+        TestRequest r = (TestRequest)beanshell.get("request");
         assertEquals(TEST_VALUE1, beanshell.get("s"));
+        assertEquals(TEST_VIEW, (String)r.getAttribute(ATTR_VIEW));
     }
     
     @Test

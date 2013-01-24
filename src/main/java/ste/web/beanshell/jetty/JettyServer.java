@@ -16,7 +16,6 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
-import ste.web.beanshell.BeanShellJettyHandler;
 import ste.web.beanshell.BeanShellServlet;
 
 import static ste.web.beanshell.Constants.*;
@@ -49,16 +48,19 @@ public class JettyServer {
         resourceHandler.setWelcomeFiles(new String[]{ "index.html" });
         resourceHandler.setResourceBase(ROOT);
         
-        BeanShellJettyHandler bsHandler = new BeanShellJettyHandler();
+        BeanShellHandler bsHandler = new BeanShellHandler();
         bsHandler.setControllersFolder("/c");
+        
+        VelocityHandler velocityHandler = new VelocityHandler();
+        velocityHandler.setViewsFolder("/v");
  
         HandlerList handlers = new HandlerList();
-        handlers.setHandlers(new Handler[] { resourceHandler, bsHandler, new DefaultHandler() });
+        handlers.setHandlers(new Handler[] { resourceHandler, bsHandler, velocityHandler, new DefaultHandler() });
         
         SessionHandler sh = new SessionHandler();
         sh.setHandler(handlers);
         server.setHandler(sh);
-        server.setAttribute(ATTRIBUTE_APP_ROOT, ROOT);
+        server.setAttribute(ATTR_APP_ROOT, ROOT);
     }
     
     public boolean start() {

@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.regex.Matcher;
 import org.apache.commons.io.IOUtils;
+import ste.web.beanshell.Constants;
 
 result = "";
 
@@ -28,4 +29,4 @@ script = (script == void) ? "" : Matcher.quoteReplacement(script);
 response.writer.write(template.replaceAll("__result__", result)
                               .replaceAll("__script__", script));
 
-view = "main.vv";
+request.setAttribute(Constants.ATTR_VIEW, "main.v");

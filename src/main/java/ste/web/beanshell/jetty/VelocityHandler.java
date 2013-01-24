@@ -19,17 +19,19 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.web.beanshell;
+package ste.web.beanshell.jetty;
 
 import bsh.EvalError;
-import bsh.Interpreter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.logging.Logger;
+import java.io.StringWriter;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -40,95 +42,88 @@ import static ste.web.beanshell.Constants.*;
  *
  * @author ste
  */
-public class BeanShellJettyHandler extends AbstractHandler {
-    
+public class VelocityHandler extends AbstractHandler {
+
     // --------------------------------------------------------------- Constants
-    
     // ------------------------------------------------------------ Private data
-    
-    private Interpreter bsh;
-    
-    private String controllersFolder;
-    
+    private VelocityEngine engine;
+    private String viewsFolder;
+
     // ------------------------------------------------------------ Constructors
-    
-    public BeanShellJettyHandler() {
-        bsh = null;
-        controllersFolder = null;
+    public VelocityHandler() {
+        engine = null;
+        viewsFolder = null;
     }
 
     // ---------------------------------------------------------- Public methods
-    
-    
     /**
-     * @return the controllersFolder
+     * @return the viewsFolder
+     *
      */
-    public String getControllersFolder() {
-        return controllersFolder;
+    public String getViewsFolder() {
+        return viewsFolder;
     }
 
     /**
-     * @param controllersFolder the controllersFolder to set
+     * @param viewsFolder the viewsFolder to set
      */
-    public void setControllersFolder(String controllersFolder) {
-        this.controllersFolder = controllersFolder;
+    public void setViewsFolder(String viewsFolder) {
+        this.viewsFolder = viewsFolder;
     }
-    
-    
+
     @Override
     protected void doStart() throws Exception {
-        bsh = new Interpreter();
+        engine = new VelocityEngine();
+        engine.init();
     }
 
-
     @Override
-    public void handle(String uri, 
-                       Request request, 
-                       HttpServletRequest hrequest, 
-                       HttpServletResponse hresponse) throws IOException, ServletException {
+    public void handle(String uri,
+            Request request,
+            HttpServletRequest hrequest,
+            HttpServletResponse hresponse) throws IOException, ServletException {
         request.setHandled(false);
         
-        if (!uri.endsWith(".bsh")) {
+        String view = (String)request.getAttribute(ATTR_VIEW);
+        if (view == null) {
             return;
         }
         
-        String root = (String)getServer().getAttribute(ATTRIBUTE_APP_ROOT);
+        String root = (String)getServer().getAttribute(ATTR_APP_ROOT);
         
-        if (controllersFolder == null) {
-            controllersFolder = DEFAULT_CONTROLLERS_PREFIX;
+        if (viewsFolder == null) {
+            viewsFolder = DEFAULT_VIEWS_PREFIX;
         } else {
             //
             // let's fix a common mistake :)
             //
-            if (!controllersFolder.startsWith("/")) {
-                setControllersFolder('/' + getControllersFolder());
+            if (!viewsFolder.startsWith("/")) {
+                setViewsFolder('/' + getViewsFolder());
             }
         }
 
-        File scriptFile = new File(root, uri);
-        String controllerPath = scriptFile.getParent() + getControllersFolder();
-        scriptFile = new File(controllerPath, scriptFile.getName());
+        File viewFile = new File(root, view);
+        String viewPath = viewFile.getParent() + getViewsFolder();
+        viewFile = new File(viewPath, viewFile.getName());
         
-        try {
-            BeanShellUtils.setup(bsh, hrequest, hresponse);
-            bsh.set(VAR_SOURCE, scriptFile.getAbsolutePath());
-            bsh.eval(BeanShellUtils.getScript(scriptFile));
-            request.setHandled(true);
-        } catch (FileNotFoundException e) {
-            hresponse.sendError(HttpStatus.NOT_FOUND_404, "Script " + scriptFile + " not found.");
-            request.setHandled(true);
-        } catch (EvalError e) {
-            throw new ServletException("Error evaluating " + uri + ": " + e, e);
-        }
+        Template t = engine.getTemplate(viewFile.getAbsolutePath());
+        VelocityContext context = new VelocityContext();
+        t.merge(context, hresponse.getWriter());
+        request.setHandled(true);
+        /*
+         //} catch (FileNotFoundException e) {
+         hresponse.sendError(HttpStatus.NOT_FOUND_404, "Script " + scriptFile + " not found.");
+         request.setHandled(true);
+         //} catch (EvalError e) {
+         //throw new ServletException("Error evaluating " + uri + ": " + e, e);
+         //}
+         */
     }
-    
+
     /**
-     * Returns the interpreter used by this handler
-     * 
-     * @return the interpreter used by this handler
+     * @return the engine
      */
-    public Interpreter getInterpreter() {
-        return bsh;
+    public VelocityEngine getEngine() {
+        return engine;
     }
-    
 }
