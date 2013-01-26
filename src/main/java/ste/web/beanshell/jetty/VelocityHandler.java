@@ -31,6 +31,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.exception.MethodInvocationException;
+import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
@@ -77,12 +79,11 @@ public class VelocityHandler extends AbstractHandler {
             //
             // let's fix a common mistake :)
             //
-            if (!viewsFolder.startsWith("/")) {
-                this.viewsFolder = '/' + viewsFolder;
-            }
+            this.viewsFolder = (!viewsFolder.startsWith("/"))
+                             ? ('/' + viewsFolder)
+                             : viewsFolder
+                             ;
         }
-        
-        
     }
 
     @Override
@@ -123,6 +124,10 @@ public class VelocityHandler extends AbstractHandler {
         } catch (ResourceNotFoundException e) {
             hresponse.sendError(HttpStatus.NOT_FOUND_404, "View " + viewFile + " not found.");
             request.setHandled(true);
+        } catch (ParseErrorException e) {
+            throw new ServletException("Parse error evaluating " + view + ": " + e, e);
+        } catch (MethodInvocationException e) {
+            throw new ServletException("Method invocation error evaluating " + view + ": " + e, e);
         }
     }
 

@@ -74,7 +74,7 @@ public class ConsoleControllerTest extends BeanShellTest
         
         TestRequest r = (TestRequest)beanshell.get("request");
         assertEquals(TEST_VALUE1, beanshell.get("s"));
-        assertEquals(TEST_VIEW, (String)r.getAttribute(ATTR_VIEW));
+        assertEquals(TEST_VIEW, beanshell.get(ATTR_VIEW));
     }
     
     @Test

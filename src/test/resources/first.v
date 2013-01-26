@@ -1,1 +1,1 @@
-First $view
+First ($view,$a_one,$a_two,$a_three)

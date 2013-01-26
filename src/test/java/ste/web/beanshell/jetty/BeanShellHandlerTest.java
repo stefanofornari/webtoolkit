@@ -220,6 +220,16 @@ public class BeanShellHandlerTest {
         }
     }
     
+    @Test
+    public void variablesAttribute() throws Exception {
+        handler.handle(TEST_URI1, request, request, response);
+        Interpreter i = handler.getInterpreter();
+        assertTrue((boolean)request.getAttribute("first"));
+        assertNull(request.getAttribute("something")); // just to make sure it 
+                                                       // does not always return
+                                                       // the same
+    }
+    
     // --------------------------------------------------------- Private methods
     
     private void simulateStart(AbstractHandler h) throws Exception {

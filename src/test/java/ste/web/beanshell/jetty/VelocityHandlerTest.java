@@ -21,9 +21,10 @@
  */
 package ste.web.beanshell.jetty;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import javax.servlet.ServletException;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.runtime.parser.ParseException;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -58,6 +59,8 @@ public class VelocityHandlerTest {
     public static final String TEST_NO_VIEW1 = "notexisting.v";
     public static final String TEST_NO_VIEW2 = "invalidview";
     public static final String TEST_NO_VIEW3 = "invalidview.a";
+    
+    public static final String TEST_ERROR_VIEW1 = "witherror.v";
         
     private TestRequest request;
     private TestResponse response;
@@ -101,7 +104,6 @@ public class VelocityHandlerTest {
         request.setAttribute(ATTR_VIEW, TEST_VIEW1);
         handler.handle("", request, request, response);
         assertTrue(request.isHandled());
-        assertEquals("First first.v", response.getResponseAsString());
     }
     
     @Test
@@ -142,35 +144,34 @@ public class VelocityHandlerTest {
         assertFalse(request.isHandled());
     }
         
-    /**
     @Test
-    public void scriptError() {
+    public void viewError() {
         try {
-            handler.handle(TEST_URI6, request, request, response);
-            fail(TEST_URI6 + " error shall throw a ServletException");
+            request.setAttribute(ATTR_VIEW, TEST_ERROR_VIEW1);
+            handler.handle("", request, request, response);
+            fail(TEST_ERROR_VIEW1 + " error shall throw a ServletException");
         } catch (ServletException e) {
             //
             // OK
             //
-            assertTrue(e.getCause() instanceof EvalError);
+            assertTrue(e.getCause() instanceof ParseErrorException);
         } catch (Exception e) {
-            fail(TEST_URI6 + " error shall throw a ServletException instead of " + e);
-        }
-        
-        try {
-            handler.handle(TEST_URI7, request, request, response);
-            fail(TEST_URI7 + " error shall throw a ServletException");
-        } catch (ServletException e) {
-            //
-            // OK
-            //
-            assertTrue(e.getCause() instanceof EvalError);
-        } catch (Exception e) {
-            fail(TEST_URI7 + " error shall throw a ServletException instead of " + e);
+            fail(TEST_ERROR_VIEW1 + " error shall throw a ServletException");
         }
     }
     
-   */
+    @Test
+    public void attributes() throws Exception {
+        request.setAttribute(ATTR_VIEW, TEST_VIEW1);
+        request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
+        request.setAttribute(TEST_REQ_ATTR_NAME2, TEST_VALUE2);
+        request.setAttribute(TEST_REQ_ATTR_NAME3, TEST_VALUE3);
+        handler.handle("", request, request, response);
+        assertEquals(
+            String.format("First (%s,%s,%s,%s)", TEST_VIEW1, TEST_VALUE1, TEST_VALUE2, TEST_VALUE3),
+            response.getResponseAsString()
+        );
+    }
     
     // --------------------------------------------------------- Private methods
     

@@ -114,6 +114,7 @@ public class BeanShellHandler extends AbstractHandler {
             BeanShellUtils.setup(bsh, hrequest, hresponse);
             bsh.set(VAR_SOURCE, scriptFile.getAbsolutePath());
             bsh.eval(BeanShellUtils.getScript(scriptFile));
+            setVariablesAttributes(request);
         } catch (FileNotFoundException e) {
             hresponse.sendError(HttpStatus.NOT_FOUND_404, "Script " + scriptFile + " not found.");
         } catch (EvalError e) {
@@ -128,6 +129,21 @@ public class BeanShellHandler extends AbstractHandler {
      */
     public Interpreter getInterpreter() {
         return bsh;
+    }
+    
+    // --------------------------------------------------------- Private methods
+    
+    /**
+     * Set the variables defined in the script as attribute of the request so
+     * that they can be accessed by other handlers
+     * 
+     * @param request the request object - NOT NULl
+     */
+    private void setVariablesAttributes(Request request) throws EvalError {
+        String[] vars = (String[])bsh.get("this.variables");
+        for(String var: vars) {
+            request.setAttribute(var, bsh.get(var));
+        }
     }
     
 }

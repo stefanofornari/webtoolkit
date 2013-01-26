@@ -17,16 +17,8 @@ if (script != void) {
   }
   result = new String(o.toByteArray());
   this.interpreter.out = old;
+} else {
+  script = "";
 }
 
-sourceFile = new File(source);
-viewFile = new File(sourceFile.getParent(), "main.html");
-
-String template = IOUtils.toString(new FileInputStream(viewFile));
-
-result = Matcher.quoteReplacement(result);
-script = (script == void) ? "" : Matcher.quoteReplacement(script);
-response.writer.write(template.replaceAll("__result__", result)
-                              .replaceAll("__script__", script));
-
-request.setAttribute(Constants.ATTR_VIEW, "main.v");
+view = "main.v";
