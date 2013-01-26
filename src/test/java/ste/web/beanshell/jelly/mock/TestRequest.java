@@ -19,7 +19,7 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.web.beanshell.jelly.test;
+package ste.web.beanshell.jelly.mock;
 
 /**
  *
@@ -30,6 +30,4 @@ public class TestRequest extends org.eclipse.jetty.server.Request {
     public TestRequest() {
         super(null, null);
     }
-    
-    
 }

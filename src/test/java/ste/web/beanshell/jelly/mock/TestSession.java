@@ -19,7 +19,7 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.web.beanshell.jelly.test;
+package ste.web.beanshell.jelly.mock;
 
 import java.util.Enumeration;
 import javax.servlet.ServletContext;

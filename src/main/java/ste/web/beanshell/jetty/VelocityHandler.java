@@ -21,17 +21,17 @@
  */
 package ste.web.beanshell.jetty;
 
-import bsh.EvalError;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.StringWriter;
+import java.io.Writer;
+import java.util.Enumeration;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.exception.ResourceNotFoundException;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -52,7 +52,7 @@ public class VelocityHandler extends AbstractHandler {
     // ------------------------------------------------------------ Constructors
     public VelocityHandler() {
         engine = null;
-        viewsFolder = null;
+        setViewsFolder(null);
     }
 
     // ---------------------------------------------------------- Public methods
@@ -65,15 +65,35 @@ public class VelocityHandler extends AbstractHandler {
     }
 
     /**
-     * @param viewsFolder the viewsFolder to set
+     * Sets the folder where views are located. If the the given value is null,
+     * it defaults to DEFAULT_VIEWS_PREFIX.
+     * 
+     * @param viewsFolder the viewsFolder to set - NULL
      */
-    public void setViewsFolder(String viewsFolder) {
-        this.viewsFolder = viewsFolder;
+    public void setViewsFolder(final String viewsFolder) {
+        if (viewsFolder == null) {
+            this.viewsFolder = DEFAULT_VIEWS_PREFIX;
+        } else {
+            //
+            // let's fix a common mistake :)
+            //
+            if (!viewsFolder.startsWith("/")) {
+                this.viewsFolder = '/' + viewsFolder;
+            }
+        }
+        
+        
     }
 
     @Override
     protected void doStart() throws Exception {
+        String root = (String)getServer().getAttribute(ATTR_APP_ROOT);
+        
         engine = new VelocityEngine();
+        engine.setProperty("file.resource.loader.path", root);
+        engine.setProperty("file.resource.loader.class", "org.apache.velocity.runtime.resource.loader.FileResourceLoader");
+        engine.setProperty( "resource.loader", "file" );
+        
         engine.init();
     }
 
@@ -89,35 +109,21 @@ public class VelocityHandler extends AbstractHandler {
             return;
         }
         
-        String root = (String)getServer().getAttribute(ATTR_APP_ROOT);
-        
-        if (viewsFolder == null) {
-            viewsFolder = DEFAULT_VIEWS_PREFIX;
-        } else {
-            //
-            // let's fix a common mistake :)
-            //
-            if (!viewsFolder.startsWith("/")) {
-                setViewsFolder('/' + getViewsFolder());
-            }
+        if (!view.endsWith(".v")) {
+            return;
         }
-
-        File viewFile = new File(root, view);
-        String viewPath = viewFile.getParent() + getViewsFolder();
-        viewFile = new File(viewPath, viewFile.getName());
         
-        Template t = engine.getTemplate(viewFile.getAbsolutePath());
-        VelocityContext context = new VelocityContext();
-        t.merge(context, hresponse.getWriter());
-        request.setHandled(true);
-        /*
-         //} catch (FileNotFoundException e) {
-         hresponse.sendError(HttpStatus.NOT_FOUND_404, "Script " + scriptFile + " not found.");
-         request.setHandled(true);
-         //} catch (EvalError e) {
-         //throw new ServletException("Error evaluating " + uri + ": " + e, e);
-         //}
-         */
+        File viewFile = new File(viewsFolder, view);
+        
+        try {
+            Template t = engine.getTemplate(viewFile.getAbsolutePath());
+            Writer w = hresponse.getWriter();
+            t.merge(buildContext(hrequest), w); w.flush();
+            request.setHandled(true);
+        } catch (ResourceNotFoundException e) {
+            hresponse.sendError(HttpStatus.NOT_FOUND_404, "View " + viewFile + " not found.");
+            request.setHandled(true);
+        }
     }
 
     /**
@@ -125,5 +131,26 @@ public class VelocityHandler extends AbstractHandler {
      */
     public VelocityEngine getEngine() {
         return engine;
+    }
+    
+    // --------------------------------------------------------- Private methods
+    
+    /**
+     * Creates a velocity context filling it with all request attributes
+     * 
+     * @param request the request to create the context upon
+     * 
+     * @return the newly created context
+     */
+    private VelocityContext buildContext(HttpServletRequest request) {
+        VelocityContext context = new VelocityContext();
+        
+        String key = null;
+        for (Enumeration<String> e = request.getAttributeNames(); e.hasMoreElements();) {
+            key = e.nextElement();
+            context.put(key, request.getAttribute(key));
+        }
+        
+        return context;
     }
 }

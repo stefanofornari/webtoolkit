@@ -21,24 +21,19 @@
  */
 package ste.web.beanshell.jetty;
 
-import bsh.EvalError;
-import bsh.Interpreter;
-import java.io.File;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
-import java.util.Enumeration;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpSession;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
-import ste.web.beanshell.jelly.test.TestRequest;
+import ste.web.beanshell.jelly.mock.TestRequest;
 import static org.junit.Assert.*;
 import org.junit.Before;
 
 import static ste.web.beanshell.Constants.*;
-import org.eclipse.jetty.server.Response;
-import ste.web.beanshell.jelly.test.TestSession;
+import ste.web.beanshell.jelly.mock.TestResponse;
 
 /**
  *
@@ -58,10 +53,14 @@ public class VelocityHandlerTest {
     public static final String TEST_VALUE2 = "due";
     public static final String TEST_VALUE3 = "tre";
     
-    public static final String TEST_VIEW1 = "first.v";
+    public static final String TEST_VIEW1    = "first.v";
+    public static final String TEST_VIEW2    = "second.v";
+    public static final String TEST_NO_VIEW1 = "notexisting.v";
+    public static final String TEST_NO_VIEW2 = "invalidview";
+    public static final String TEST_NO_VIEW3 = "invalidview.a";
         
     private TestRequest request;
-    private Response response;
+    private TestResponse response;
     private Server server;
     private VelocityHandler handler;
     
@@ -75,7 +74,8 @@ public class VelocityHandlerTest {
     @Before
     public void startUp() throws Exception {
         request = new TestRequest();
-        response = new Response();
+        response = new TestResponse();
+       
         handler = new VelocityHandler();
         server = new Server();
         server.setAttribute(ATTR_APP_ROOT, "src/test/resources");
@@ -101,27 +101,48 @@ public class VelocityHandlerTest {
         request.setAttribute(ATTR_VIEW, TEST_VIEW1);
         handler.handle("", request, request, response);
         assertTrue(request.isHandled());
+        assertEquals("First first.v", response.getResponseAsString());
     }
     
-    /*
     @Test
     public void execScriptNonDefaultDirs() throws Exception {
-        handler.setControllersFolder("controllers");
+        handler.setViewsFolder("views");
         
-        handler.handle(TEST_URI3, request, request, response);
-        assertNotNull(handler.getInterpreter().get("firstcontroller"));
+        request.setAttribute(ATTR_VIEW, TEST_VIEW1);
+        handler.handle("", request, request, response);
+        assertTrue(request.isHandled());
         
-        handler.handle(TEST_URI4, request, request, response);
-        assertNotNull(handler.getInterpreter().get("secondcontroller"));
+        request.setAttribute(ATTR_VIEW, TEST_VIEW2);
+        handler.handle("", request, request, response);
+        assertTrue(request.isHandled());
+        
     }
     
     @Test
     public void scriptNotFound() throws Exception {
-        handler.handle(TEST_URI5, request, request, response);
+        request.setAttribute(ATTR_VIEW, TEST_NO_VIEW1);
+        
+        handler.handle("", request, request, response);
         assertEquals(HttpStatus.NOT_FOUND_404, response.status);
-        assertTrue(response.statusMessage.indexOf(TEST_URI5)>=0);
+        assertTrue(response.statusMessage.indexOf(TEST_NO_VIEW1)>=0);
     }
     
+    /**
+     * Velocity views are identified by the .v extension
+     * 
+     * @throws Exception 
+     */
+    @Test
+    public void execVelocityViewOnly() throws Exception {
+        request.setAttribute(ATTR_VIEW, TEST_NO_VIEW2);
+        handler.handle("", request, request, response);
+        assertFalse(request.isHandled());
+        request.setAttribute(ATTR_VIEW, TEST_NO_VIEW3);
+        handler.handle("", request, request, response);
+        assertFalse(request.isHandled());
+    }
+        
+    /**
     @Test
     public void scriptError() {
         try {
@@ -149,54 +170,7 @@ public class VelocityHandlerTest {
         }
     }
     
-    @Test
-    public void execBshOnly() throws Exception {
-        handler.handle(TEST_URI8, request, request, response);
-        assertFalse(request.isHandled());
-    }
-    
-    @Test 
-    public void setMainVariables() throws Exception {
-        HttpSession session = new TestSession();
-
-        request.setSession(session);
-
-        handler.handle(TEST_URI1, request, request, response);
-        
-        Interpreter i = handler.getInterpreter();
-        assertSame(i.get(VAR_REQUEST), request);
-        assertSame(i.get(VAR_RESPONSE), response);
-        assertSame(i.get(VAR_SESSION), session);
-        assertNotNull(i.get(VAR_LOG));
-        assertNotNull(i.get(VAR_OUT));
-        assertEquals(
-            new File((String)server.getAttribute(ATTR_APP_ROOT), TEST_URI1).getAbsolutePath(),
-            handler.getInterpreter().get(VAR_SOURCE)
-        );
-    }
-    
-    @Test
-    public void requestParameters() throws Exception {
-        handler.handle(TEST_URI1, request, request, response);
-        Interpreter i = handler.getInterpreter();
-        Enumeration<String> params = request.getParameterNames();
-        while (params.hasMoreElements()) {
-            String param = params.nextElement();
-            assertEquals(request.getParameter(param), i.get(param));
-        }
-    }
-    
-    @Test
-    public void requestAttributes() throws Exception {
-        handler.handle(TEST_URI1, request, request, response);
-        Interpreter i = handler.getInterpreter();
-        Enumeration<String> attrs = request.getAttributeNames();
-        while (attrs.hasMoreElements()) {
-            String attr = attrs.nextElement();
-            assertEquals(request.getAttribute(attr), i.get(attr));
-        }
-    }
-    */
+   */
     
     // --------------------------------------------------------- Private methods
     

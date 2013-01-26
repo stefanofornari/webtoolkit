@@ -34,13 +34,13 @@ import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
-import ste.web.beanshell.jelly.test.TestRequest;
+import ste.web.beanshell.jelly.mock.TestRequest;
 import static org.junit.Assert.*;
 import org.junit.Before;
 
 import static ste.web.beanshell.Constants.*;
 import org.eclipse.jetty.server.Response;
-import ste.web.beanshell.jelly.test.TestSession;
+import ste.web.beanshell.jelly.mock.TestSession;
 
 /**
  *
