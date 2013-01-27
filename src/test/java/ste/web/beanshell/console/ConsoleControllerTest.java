@@ -21,13 +21,13 @@
  */
 package ste.web.beanshell.console;
 
-import org.eclipse.jetty.server.Response;
 import static org.junit.Assert.*;
 import        org.junit.Test;
 
 import org.eclipse.jetty.server.session.HashSessionManager;
 import ste.web.beanshell.Constants;
 import ste.web.beanshell.jelly.mock.TestRequest;
+import ste.web.beanshell.jelly.mock.TestResponse;
 import ste.web.beanshell.test.BeanShellTest;
 
 /**
@@ -55,7 +55,7 @@ public class ConsoleControllerTest extends BeanShellTest
         
         beanshell.set("request", r);
         beanshell.set("source", "src/main/webapp/console/c/exec.bsh");
-        beanshell.set("response", new Response());
+        beanshell.set("response", new TestResponse());
         //beanshell.set("session", r.getSession());
     }
     
