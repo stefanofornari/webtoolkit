@@ -56,20 +56,21 @@ public abstract class BeanShellUtils {
     /**
      * Reads the given script enclosing it into a try-catch block.
      * 
-     * @param script the file to read
+     * @param script the file to read - NOT NULL
      * 
      * @return the script content
      * 
      * @throws IOException in case of IO errors
      */
     public static String getScript(File script) throws IOException {
+        if (script == null) {
+            throw new IllegalArgumentException("script cannot be null");
+        }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         FileInputStream is = null;
         try {
             is = new FileInputStream(script);
-            if (is == null) {
-                throw new FileNotFoundException(script.getAbsolutePath());
-            }
+            
             byte[] buf = new byte[1024];
             int n = 0;
             while ((n = is.read(buf)) >= 0) {
@@ -80,9 +81,7 @@ public abstract class BeanShellUtils {
             if (is != null) {
                 is.close();
             }
-            if (baos != null) {
-                baos.close();
-            }
+            baos.close();
         }
     }
     
