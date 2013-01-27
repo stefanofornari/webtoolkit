@@ -93,6 +93,7 @@ public class VelocityHandlerTest {
     public void engineSetUp() throws Exception {
         assertNotNull(handler.getEngine());       
         assertNull(new VelocityHandler().getEngine());
+        assertEquals(DEFAULT_VIEWS_PREFIX, handler.getViewsFolder());
     }
     
     @Test
@@ -176,7 +177,7 @@ public class VelocityHandlerTest {
         handler.handle("", request, request, response);
         assertEquals(
             String.format("First (%s,%s,%s,%s)", TEST_VIEW1, TEST_VALUE1, TEST_VALUE2, TEST_VALUE3),
-            response.getResponseAsString()
+            response.out.toString()
         );
     }
     
