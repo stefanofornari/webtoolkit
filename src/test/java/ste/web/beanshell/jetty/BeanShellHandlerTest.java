@@ -21,7 +21,6 @@
  */
 package ste.web.beanshell.jetty;
 
-import ste.web.beanshell.jetty.BeanShellHandler;
 import bsh.EvalError;
 import bsh.Interpreter;
 import java.io.File;
@@ -40,6 +39,7 @@ import org.junit.Before;
 
 import static ste.web.beanshell.Constants.*;
 import org.eclipse.jetty.server.Response;
+import ste.web.beanshell.jelly.mock.TestResponse;
 import ste.web.beanshell.jelly.mock.TestSession;
 
 /**
@@ -83,7 +83,7 @@ public class BeanShellHandlerTest {
                                          ;
     
     private TestRequest request;
-    private Response response;
+    private TestResponse response;
     private Server server;
     private BeanShellHandler handler;
     
@@ -101,7 +101,7 @@ public class BeanShellHandlerTest {
         request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
         request.setAttribute(TEST_REQ_ATTR_NAME2, TEST_VALUE2);
         request.setAttribute(TEST_REQ_ATTR_NAME3, TEST_VALUE3);
-        response = new Response();
+        response = new TestResponse();
         handler = new BeanShellHandler();
         server = new Server();
         server.setAttribute(ATTR_APP_ROOT, "src/test/resources");
@@ -141,7 +141,7 @@ public class BeanShellHandlerTest {
     @Test
     public void scriptNotFound() throws Exception {
         handler.handle(TEST_URI5, request, request, response);
-        assertEquals(HttpStatus.NOT_FOUND_404, response.status);
+        assertEquals(HttpStatus.NOT_FOUND_404, response.getStatus());
         assertTrue(response.statusMessage.indexOf(TEST_URI5)>=0);
     }
     
@@ -224,7 +224,7 @@ public class BeanShellHandlerTest {
     public void variablesAttribute() throws Exception {
         handler.handle(TEST_URI1, request, request, response);
         Interpreter i = handler.getInterpreter();
-        assertTrue((boolean)request.getAttribute("first"));
+        assertTrue((Boolean)request.getAttribute("first"));
         assertNull(request.getAttribute("something")); // just to make sure it 
                                                        // does not always return
                                                        // the same
