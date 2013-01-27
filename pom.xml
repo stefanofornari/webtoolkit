@@ -151,5 +151,17 @@
             </plugin>
         </plugins>
     </build>
+    
+    <scm>
+        <connection>scm:git:git@github.com:stefanofornari/beanshellservlet.git</connection>
+        <url>http://github.com/stefanofornari/beanshellservlet/tree/master</url>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>filesystem</id>
+            <url>file:./target/deploy</url>
+        </repository>
+    </distributionManagement>
 
 </project>
