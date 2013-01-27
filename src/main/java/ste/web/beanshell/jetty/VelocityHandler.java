@@ -120,7 +120,8 @@ public class VelocityHandler extends AbstractHandler {
             Template t = engine.getTemplate(viewFile.getAbsolutePath());
             Writer w = hresponse.getWriter();
             t.merge(buildContext(hrequest), w); w.flush();
-            request.setHandled(true);
+            
+            request.setHandled(true); hresponse.setStatus(HttpStatus.OK_200);
         } catch (ResourceNotFoundException e) {
             hresponse.sendError(HttpStatus.NOT_FOUND_404, "View " + viewFile + " not found.");
             request.setHandled(true);

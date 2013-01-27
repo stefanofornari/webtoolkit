@@ -56,6 +56,8 @@ public class VelocityHandlerTest {
     
     public static final String TEST_VIEW1    = "first.v";
     public static final String TEST_VIEW2    = "second.v";
+    public static final String TEST_VIEW3    = "third.v";
+    public static final String TEST_VIEW4    = "fourth.v";
     public static final String TEST_NO_VIEW1 = "notexisting.v";
     public static final String TEST_NO_VIEW2 = "invalidview";
     public static final String TEST_NO_VIEW3 = "invalidview.a";
@@ -100,32 +102,37 @@ public class VelocityHandlerTest {
     }
 
     @Test
-    public void execTemplateDefaultDirs() throws Exception {
+    public void viewDefaultDirs() throws Exception {
         request.setAttribute(ATTR_VIEW, TEST_VIEW1);
         handler.handle("", request, request, response);
+        assertEquals(200, response.getStatus());
         assertTrue(request.isHandled());
     }
     
     @Test
-    public void execScriptNonDefaultDirs() throws Exception {
+    public void viewNonDefaultDirs() throws Exception {
+        handler.setViewsFolder("/views");
+        
+        request.setAttribute(ATTR_VIEW, TEST_VIEW3);
+        handler.handle("", request, request, response);
+        assertEquals(HttpStatus.OK_200, response.getStatus());
+        assertTrue(request.isHandled());
+        
         handler.setViewsFolder("views");
         
-        request.setAttribute(ATTR_VIEW, TEST_VIEW1);
+        request.setAttribute(ATTR_VIEW, TEST_VIEW4);
         handler.handle("", request, request, response);
-        assertTrue(request.isHandled());
-        
-        request.setAttribute(ATTR_VIEW, TEST_VIEW2);
-        handler.handle("", request, request, response);
+        assertEquals(HttpStatus.OK_200, response.getStatus());
         assertTrue(request.isHandled());
         
     }
     
     @Test
-    public void scriptNotFound() throws Exception {
+    public void viewNotFound() throws Exception {
         request.setAttribute(ATTR_VIEW, TEST_NO_VIEW1);
         
         handler.handle("", request, request, response);
-        assertEquals(HttpStatus.NOT_FOUND_404, response.status);
+        assertEquals(HttpStatus.NOT_FOUND_404, response.getStatus());
         assertTrue(response.statusMessage.indexOf(TEST_NO_VIEW1)>=0);
     }
     
@@ -135,7 +142,7 @@ public class VelocityHandlerTest {
      * @throws Exception 
      */
     @Test
-    public void execVelocityViewOnly() throws Exception {
+    public void velocityViewOnly() throws Exception {
         request.setAttribute(ATTR_VIEW, TEST_NO_VIEW2);
         handler.handle("", request, request, response);
         assertFalse(request.isHandled());

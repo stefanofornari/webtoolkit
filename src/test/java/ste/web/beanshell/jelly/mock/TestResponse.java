@@ -45,6 +45,16 @@ public class TestResponse extends org.eclipse.jetty.server.Response {
         return out;
     }
     
+    @Override
+    public void setStatus(final int status) {
+        this.status = status;
+    }
+    
+    @Override
+    public int getStatus() {
+        return status;
+    }
+    
     public String getResponseAsString() {
         return buffer.toString();
     }
