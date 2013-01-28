@@ -1,0 +1,45 @@
+<assembly>
+
+    <formats>
+        <format>tar.gz</format>
+        <!-- uncomment to create the archive directory -->
+        <format>dir</format>
+        <!-- -->
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <excludes>
+                <exclude>junit:junit</exclude>
+            </excludes>
+        </dependencySet>
+    </dependencySets>
+
+    <fileSets>
+        <fileSet>
+            <directory>src/main/resources/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <lineEnding>unix</lineEnding>
+            <fileMode>0775</fileMode>
+            <includes>
+                <include>*</include>
+            </includes>
+            <excludes>
+                <exclude>*.formatted</exclude>
+            </excludes>
+        </fileSet>
+        <fileSet>
+            <directory>src/main/webapp</directory>
+            <outputDirectory>webapps</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <excludes>
+                <exclude>WEB-INF</exclude>
+            </excludes>
+        </fileSet>
+    </fileSets>
+
+</assembly>
