@@ -26,13 +26,11 @@ import bsh.Interpreter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.eclipse.jetty.server.Request;
 
 import static ste.web.beanshell.Constants.*;
 
@@ -40,7 +38,7 @@ import static ste.web.beanshell.Constants.*;
  *
  * @author ste
  */
-public abstract class BeanShellUtils {
+public class BeanShellUtils {
     
     // --------------------------------------------------------------- Constants
     
