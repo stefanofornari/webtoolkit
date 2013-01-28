@@ -148,6 +148,10 @@
     </scm>
 
     <distributionManagement>
+        <site>
+            <id>filesystem</id>
+            <url>file:./target/deploy/site</url>
+        </site>
         <repository>
             <id>filesystem</id>
             <url>file:./target/deploy</url>
