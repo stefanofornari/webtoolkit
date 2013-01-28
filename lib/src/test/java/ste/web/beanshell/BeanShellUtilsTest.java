@@ -44,6 +44,11 @@ public class BeanShellUtilsTest {
     
     public BeanShellUtilsTest() {
     }
+    
+    @Test
+    public void doDonInstantiate() {
+        new BeanShellUtils();
+    }
 
     @Test
     public void getScriptNull() throws Exception {
