@@ -8,4 +8,11 @@
                 <goal>site:deploy</goal>
             </goals>
         </action>
+        <action>
+            <actionName>CUSTOM-release:preare</actionName>
+            <displayName>release:preare</displayName>
+            <goals>
+                <goal>release:prepare</goal>
+            </goals>
+        </action>
     </actions>
