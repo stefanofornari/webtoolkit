@@ -36,6 +36,10 @@
 
     <build>
         <plugins>
+            <--
+               Using release plugin 2.3.2 because most recent versions have 
+               issues with git.
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
