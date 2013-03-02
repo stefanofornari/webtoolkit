@@ -19,7 +19,7 @@
 
     <groupId>ste.web</groupId>
     <artifactId>beanshellweb-webapp</artifactId>
-    <version>1.1</version>
+    <version>1.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>BeanShellWeb (webapp)</name>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>ste.web</groupId>
             <artifactId>beanshellweb-lib</artifactId>
-            <version>1.1</version>
+            <version>1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
