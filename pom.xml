@@ -19,7 +19,7 @@
 
     <groupId>ste.web</groupId>
     <artifactId>beanshellweb</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.1.0</version>
     <packaging>pom</packaging>
 
     <name>BeanShellWeb</name>
