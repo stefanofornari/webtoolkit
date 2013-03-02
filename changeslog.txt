@@ -1,0 +1,3 @@
+20130302
+- released v1.1.0 as consolidation release separating lib and webapp
+- released v1.2 moving testing utilities to ste.test
