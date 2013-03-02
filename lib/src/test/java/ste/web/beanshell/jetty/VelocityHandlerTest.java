@@ -29,12 +29,12 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
-import ste.web.beanshell.jetty.mock.TestRequest;
+import ste.xtest.jetty.mock.TestRequest;
 import static org.junit.Assert.*;
 import org.junit.Before;
 
 import static ste.web.beanshell.Constants.*;
-import ste.web.beanshell.jetty.mock.TestResponse;
+import ste.xtest.jetty.mock.TestResponse;
 
 /**
  *

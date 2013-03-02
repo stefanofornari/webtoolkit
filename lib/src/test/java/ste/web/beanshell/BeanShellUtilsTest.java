@@ -28,11 +28,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import ste.web.beanshell.jetty.mock.TestRequest;
-import ste.web.beanshell.jetty.mock.TestResponse;
+import ste.xtest.jetty.mock.TestRequest;
+import ste.xtest.jetty.mock.TestResponse;
 
 import static ste.web.beanshell.Constants.*;
-import ste.web.beanshell.jetty.mock.TestSession;
+import ste.xtest.jetty.mock.TestSession;
 
 /**
  * We add some basic tests since the methods are mostly covered by the client

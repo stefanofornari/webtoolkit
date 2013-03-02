@@ -47,6 +47,11 @@
             <version>4.8.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>ste.test</groupId>
+            <artifactId>xtest</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

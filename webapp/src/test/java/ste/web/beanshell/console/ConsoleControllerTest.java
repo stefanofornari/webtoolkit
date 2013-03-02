@@ -26,9 +26,9 @@ import        org.junit.Test;
 
 import org.eclipse.jetty.server.session.HashSessionManager;
 import ste.web.beanshell.Constants;
-import ste.web.beanshell.jetty.mock.TestRequest;
-import ste.web.beanshell.jetty.mock.TestResponse;
-import ste.web.beanshell.test.BeanShellTest;
+import ste.xtest.jetty.mock.TestRequest;
+import ste.xtest.jetty.mock.TestResponse;
+import ste.xtest.beanshell.BeanShellTest;
 
 /**
  *
