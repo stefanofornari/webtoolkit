@@ -142,13 +142,6 @@
         </plugins>
     </build>
 
-<!-- 
-    <scm>
-        <connection>scm:git:git@github.com:stefanofornari/beanshellweb.git</connection>
-        <url>http://github.com/stefanofornari/beanshellservlet/tree/master</url>
-    </scm>
--->
-
     <distributionManagement>
         <site>
             <id>filesystem</id>
