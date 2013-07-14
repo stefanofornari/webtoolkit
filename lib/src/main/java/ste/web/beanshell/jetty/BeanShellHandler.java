@@ -26,6 +26,7 @@ import bsh.Interpreter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -33,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import static org.junit.Assert.assertNull;
 import ste.web.beanshell.BeanShellUtils;
 
 import static ste.web.beanshell.Constants.*;
@@ -42,25 +44,25 @@ import static ste.web.beanshell.Constants.*;
  * @author ste
  */
 public class BeanShellHandler extends AbstractHandler {
-    
+
     // --------------------------------------------------------------- Constants
-    
+
     // ------------------------------------------------------------ Private data
-    
+
     private Interpreter bsh;
-    
+
     private String controllersFolder;
-    
+
     // ------------------------------------------------------------ Constructors
-    
+
     public BeanShellHandler() {
         bsh = null;
         controllersFolder = null;
     }
 
     // ---------------------------------------------------------- Public methods
-    
-    
+
+
     /**
      * @return the controllersFolder
      */
@@ -74,8 +76,8 @@ public class BeanShellHandler extends AbstractHandler {
     public void setControllersFolder(String controllersFolder) {
         this.controllersFolder = controllersFolder;
     }
-    
-    
+
+
     @Override
     protected void doStart() throws Exception {
         bsh = new Interpreter();
@@ -83,18 +85,18 @@ public class BeanShellHandler extends AbstractHandler {
 
 
     @Override
-    public void handle(String uri, 
-                       Request request, 
-                       HttpServletRequest hrequest, 
+    public void handle(String uri,
+                       Request request,
+                       HttpServletRequest hrequest,
                        HttpServletResponse hresponse) throws IOException, ServletException {
         request.setHandled(false);
-        
+
         if (!uri.endsWith(".bsh")) {
             return;
         }
-        
+
         String root = (String)getServer().getAttribute(ATTR_APP_ROOT);
-        
+
         if (controllersFolder == null) {
             controllersFolder = DEFAULT_CONTROLLERS_PREFIX;
         } else {
@@ -109,12 +111,12 @@ public class BeanShellHandler extends AbstractHandler {
         File scriptFile = new File(root, uri);
         String controllerPath = scriptFile.getParent() + getControllersFolder();
         scriptFile = new File(controllerPath, scriptFile.getName());
-        
+
         try {
             BeanShellUtils.setup(bsh, hrequest, hresponse);
             bsh.set(VAR_SOURCE, scriptFile.getAbsolutePath());
             bsh.eval(BeanShellUtils.getScript(scriptFile));
-            
+
             //
             // We need to add .v to the view name
             //
@@ -123,33 +125,24 @@ public class BeanShellHandler extends AbstractHandler {
                 throw new ServletException("View not defined. Set the variable 'view' to the name of the view to show (without.v).");
             }
             bsh.set(ATTR_VIEW, view + ".v");
-            
-            setVariablesAttributes(request);
+
+            BeanShellUtils.cleanup(bsh, hrequest, hresponse);
+            BeanShellUtils.setVariablesAttributes(bsh, request);
         } catch (FileNotFoundException e) {
             hresponse.sendError(HttpStatus.NOT_FOUND_404, "Script " + scriptFile + " not found.");
         } catch (EvalError e) {
             throw new ServletException("Error evaluating " + uri + ": " + e, e);
         }
     }
-    
+
     /**
      * Returns the interpreter used by this handler
-     * 
+     *
      * @return the interpreter used by this handler
      */
     public Interpreter getInterpreter() {
         return bsh;
     }
-    
+
     // --------------------------------------------------------- Private methods
-    
-    /**
-     * Set the variables defined in the script as attribute of the request so
-     * that they can be accessed by other handlers
-     * 
-     * @param request the request object - NOT NULl
-     */
-    private void setVariablesAttributes(Request request) throws EvalError {
-        BeanShellUtils.setVariablesAttributes(bsh, request);
-    }
 }

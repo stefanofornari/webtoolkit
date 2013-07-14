@@ -39,26 +39,26 @@ import static ste.web.beanshell.Constants.*;
  * @author ste
  */
 public class BeanShellUtils {
-    
+
     // --------------------------------------------------------------- Constants
-    
+
     public static final String DEFAULT_CONTROLLERS_PREFIX = "/";
-    public static final String DEFAULT_VIEWS_PREFIX = "/";    
+    public static final String DEFAULT_VIEWS_PREFIX = "/";
     public static final String LOG_NAME = "ste.web";
     public static final String PARAM_CONTROLLERS = "controllers-prefix";
     public static final String PARAM_VIEWS = "views-prefix";
-    
+
     public static final Logger log = Logger.getLogger(LOG_NAME);
-    
+
     // ---------------------------------------------------------- Public methods
-    
+
     /**
      * Reads the given script enclosing it into a try-catch block.
-     * 
+     *
      * @param script the file to read - NOT NULL
-     * 
+     *
      * @return the script content
-     * 
+     *
      * @throws IOException in case of IO errors
      */
     public static String getScript(File script) throws IOException {
@@ -69,7 +69,7 @@ public class BeanShellUtils {
         FileInputStream is = null;
         try {
             is = new FileInputStream(script);
-            
+
             byte[] buf = new byte[1024];
             int n = 0;
             while ((n = is.read(buf)) >= 0) {
@@ -83,11 +83,11 @@ public class BeanShellUtils {
             baos.close();
         }
     }
-    
+
     public static void setup(final Interpreter         interpreter,
-                             final HttpServletRequest  request    , 
-                             final HttpServletResponse response   ) 
-    throws EvalError, IOException {    
+                             final HttpServletRequest  request    ,
+                             final HttpServletResponse response   )
+    throws EvalError, IOException {
         //
         // Set attributes as script variables
         //
@@ -96,7 +96,7 @@ public class BeanShellUtils {
             key = ((String) e.nextElement()).replaceAll("\\.", "_");
             interpreter.set(key, request.getAttribute(key));
         }
-        
+
         //
         // Set request parameters as script variables. Note that parameters
         // override attributes
@@ -105,32 +105,51 @@ public class BeanShellUtils {
             key = ((String) e.nextElement()).replaceAll("\\.", "_");
             interpreter.set(key, request.getParameter(key));
         }
-        
+
         interpreter.set(VAR_REQUEST,  request                  );
         interpreter.set(VAR_RESPONSE, response                 );
         interpreter.set(VAR_SESSION,  request.getSession(false));
         interpreter.set(VAR_OUT,      response.getWriter()     );
         interpreter.set(VAR_LOG,      log                      );
     }
-    
+
+    /**
+     * Cleans up request variables so that they won't be set in next invocations
+     *
+     * @param interpreter the beanshell interpreter
+     * @param request the request
+     * @param response the response
+     *
+     */
+    public static void cleanup(
+        final Interpreter         interpreter,
+        final HttpServletRequest  request    ,
+        final HttpServletResponse response   ) throws EvalError
+    {
+        Enumeration<String> params = request.getParameterNames();
+        while (params.hasMoreElements()) {
+            interpreter.unset(params.nextElement());
+        }
+    }
+
     /**
      * Sets all variables available in the interpreter as request attributes.
-     * 
+     *
      * @param i the interpreter - NOT NULL
      * @param r - the request - NOT NULL
-     * 
-     * @throws EvalError 
+     *
+     * @throws EvalError
      */
-    public static void setVariablesAttributes(final Interpreter i, final HttpServletRequest r) 
+    public static void setVariablesAttributes(final Interpreter i, final HttpServletRequest r)
     throws EvalError {
         if (i == null) {
             throw new IllegalArgumentException("i cannot be null");
         }
-        
+
         if (r == null) {
             throw new IllegalArgumentException("r cannot be null");
         }
-        
+
         String[] vars = (String[])i.get("this.variables");
         for(String var: vars) {
             r.setAttribute(var, i.get(var));
