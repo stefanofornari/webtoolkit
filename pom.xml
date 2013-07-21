@@ -28,7 +28,7 @@
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    
+
     <modules>
         <module>lib</module>
         <module>webapp</module>
@@ -37,7 +37,7 @@
     <build>
         <plugins>
             <!--
-               Using release plugin 2.3.2 because most recent versions have 
+               Using release plugin 2.3.2 because most recent versions have
                issues with git.
             -->
             <plugin>
@@ -45,7 +45,7 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.3.2</version>
             </plugin>
-            
+
             <!--
                  Site
             -->
@@ -59,12 +59,17 @@
                             <groupId>org.codehaus.mojo</groupId>
                             <artifactId>cobertura-maven-plugin</artifactId>
                         </plugin>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-project-info-reports-plugin</artifactId>
+                            <version>2.7</version>
+                      </plugin>
                     </reportPlugins>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-    
+
     <scm>
         <connection>scm:git:git@github.com:stefanofornari/beanshellweb.git</connection>
         <url>http://github.com/stefanofornari/beanshellservlet/tree/master</url>

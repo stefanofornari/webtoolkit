@@ -1,7 +1,7 @@
 HOW TO INSTALL
 --------------
 
-1. Copy bsh-2.0b4.jar, jstl-1.2.jar under your webapp's WEB-INF/lib directory
+1. Copy bsh-2.0b5.jar, jstl-1.2.jar under your webapp's WEB-INF/lib directory
 2. Copy BeanShellServlet.class under your webapp's WEB-INF/classes/ste/web/beanshell
 3. Add the XML fragment below in your webapp's WEB-INF/web.xml
    <servlet>

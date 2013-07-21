@@ -23,17 +23,17 @@
     <packaging>jar</packaging>
 
     <name>BeanShellWeb (lib)</name>
-    
+
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    
+
     <dependencies>
         <dependency>
             <groupId>org.beanshell</groupId>
             <artifactId>bsh</artifactId>
-            <version>2.0b4</version>
+            <version>2.0b5</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -148,6 +148,11 @@
                         <plugin>
                             <groupId>org.codehaus.mojo</groupId>
                             <artifactId>cobertura-maven-plugin</artifactId>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-project-info-reports-plugin</artifactId>
+                            <version>2.7</version>
                         </plugin>
                     </reportPlugins>
                 </configuration>
