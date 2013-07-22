@@ -24,10 +24,10 @@ package ste.web.beanshell.jetty;
 import java.lang.reflect.Method;
 import javax.servlet.ServletException;
 import org.apache.velocity.exception.ParseErrorException;
-import org.apache.velocity.runtime.parser.ParseException;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.MultiMap;
 import org.junit.Test;
 import ste.xtest.jetty.mock.TestRequest;
 import static org.junit.Assert.*;
@@ -41,19 +41,19 @@ import ste.xtest.jetty.mock.TestResponse;
  * @author ste
  */
 public class VelocityHandlerTest {
-    
+
     public static final String TEST_URL_PARAM1 = "p_one";
     public static final String TEST_URL_PARAM2 = "p_two";
     public static final String TEST_URL_PARAM3 = "p_three";
-    
+
     public static final String TEST_REQ_ATTR_NAME1 = "a_one";
     public static final String TEST_REQ_ATTR_NAME2 = "a_two";
     public static final String TEST_REQ_ATTR_NAME3 = "a_three";
-    
+
     public static final String TEST_VALUE1 = "uno";
     public static final String TEST_VALUE2 = "due";
     public static final String TEST_VALUE3 = "tre";
-    
+
     public static final String TEST_VIEW1    = "first.v";
     public static final String TEST_VIEW2    = "second.v";
     public static final String TEST_VIEW3    = "third.v";
@@ -62,41 +62,41 @@ public class VelocityHandlerTest {
     public static final String TEST_NO_VIEW1 = "notexisting.v";
     public static final String TEST_NO_VIEW2 = "invalidview";
     public static final String TEST_NO_VIEW3 = "invalidview.a";
-    
+
     public static final String TEST_ERROR_VIEW1 = "witherror.v";
-        
+
     private TestRequest request;
     private TestResponse response;
     private Server server;
     private VelocityHandler handler;
-    
+
     public VelocityHandlerTest() {
         request = null;
         response = null;
         server = null;
         handler = null;
     }
-    
+
     @Before
     public void startUp() throws Exception {
         request = new TestRequest();
         response = new TestResponse();
-       
+
         handler = new VelocityHandler();
         server = new Server();
         server.setAttribute(ATTR_APP_ROOT, "src/test/resources");
-        
+
         handler.setServer(server);
         simulateStart(handler);
     }
-    
+
     @Test
     public void engineSetUp() throws Exception {
-        assertNotNull(handler.getEngine());       
+        assertNotNull(handler.getEngine());
         assertNull(new VelocityHandler().getEngine());
         assertEquals(DEFAULT_VIEWS_PREFIX, handler.getViewsFolder());
     }
-    
+
     @Test
     public void noView() throws Exception {
         handler.handle("", request, request, response);
@@ -110,48 +110,48 @@ public class VelocityHandlerTest {
         assertEquals(200, response.getStatus());
         assertTrue(request.isHandled());
     }
-    
+
     @Test
     public void viewNonDefaultDirs() throws Exception {
         handler.setViewsFolder("/views");
-        
+
         request.setAttribute(ATTR_VIEW, TEST_VIEW3);
         handler.handle("", request, request, response);
         assertEquals(HttpStatus.OK_200, response.getStatus());
         assertTrue(request.isHandled());
-        
+
         handler.setViewsFolder("views");
-        
+
         request.setAttribute(ATTR_VIEW, TEST_VIEW4);
         handler.handle("", request, request, response);
         assertEquals(HttpStatus.OK_200, response.getStatus());
         assertTrue(request.isHandled());
-        
+
     }
-    
+
     @Test
     public void viewInSubDirs() throws Exception {
         handler.setViewsFolder("/views");
-        
+
         request.setAttribute(ATTR_VIEW, TEST_VIEW5);
         handler.handle(BeanShellHandlerTest.TEST_URI4, request, request, response);
         assertEquals(HttpStatus.OK_200, response.getStatus());
         assertTrue(request.isHandled());
     }
-    
+
     @Test
     public void viewNotFound() throws Exception {
         request.setAttribute(ATTR_VIEW, TEST_NO_VIEW1);
-        
+
         handler.handle("", request, request, response);
         assertEquals(HttpStatus.NOT_FOUND_404, response.getStatus());
         assertTrue(response.statusMessage.indexOf(TEST_NO_VIEW1)>=0);
     }
-    
+
     /**
      * Velocity views are identified by the .v extension
-     * 
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     @Test
     public void velocityViewOnly() throws Exception {
@@ -162,7 +162,7 @@ public class VelocityHandlerTest {
         handler.handle("", request, request, response);
         assertFalse(request.isHandled());
     }
-        
+
     @Test
     public void viewError() {
         try {
@@ -178,7 +178,7 @@ public class VelocityHandlerTest {
             fail(TEST_ERROR_VIEW1 + " error shall throw a ServletException");
         }
     }
-    
+
     @Test
     public void attributes() throws Exception {
         request.setAttribute(ATTR_VIEW, TEST_VIEW1);
@@ -191,9 +191,28 @@ public class VelocityHandlerTest {
             response.out.toString()
         );
     }
-    
+
+    @Test
+    public void parameters() throws Exception {
+        MultiMap parameters = new MultiMap();
+
+        parameters.add(TEST_URL_PARAM1, TEST_VALUE1);
+        parameters.add(TEST_URL_PARAM2, TEST_VALUE2);
+        parameters.add(TEST_URL_PARAM3, TEST_VALUE3);
+
+        request.setParameters(parameters);
+        request.setAttribute(ATTR_VIEW, TEST_VIEW2);
+
+        handler.setViewsFolder("/views");
+        handler.handle("", request, request, response);
+        assertEquals(
+            String.format("Second (%s,%s,%s)", TEST_VALUE1, TEST_VALUE2, TEST_VALUE3),
+            response.out.toString()
+        );
+    }
+
     // --------------------------------------------------------- Private methods
-    
+
     private void simulateStart(AbstractHandler h) throws Exception {
         Method m = VelocityHandler.class.getDeclaredMethod("doStart");
         m.setAccessible(true);

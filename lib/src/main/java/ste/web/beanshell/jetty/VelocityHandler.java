@@ -69,7 +69,7 @@ public class VelocityHandler extends AbstractHandler {
     /**
      * Sets the folder where views are located. If the the given value is null,
      * it defaults to DEFAULT_VIEWS_PREFIX.
-     * 
+     *
      * @param viewsFolder the viewsFolder to set - NULL
      */
     public void setViewsFolder(final String viewsFolder) {
@@ -89,12 +89,12 @@ public class VelocityHandler extends AbstractHandler {
     @Override
     protected void doStart() throws Exception {
         String root = (String)getServer().getAttribute(ATTR_APP_ROOT);
-        
+
         engine = new VelocityEngine();
         engine.setProperty("file.resource.loader.path", root);
         engine.setProperty("file.resource.loader.class", "org.apache.velocity.runtime.resource.loader.FileResourceLoader");
         engine.setProperty( "resource.loader", "file" );
-        
+
         engine.init();
     }
 
@@ -104,22 +104,22 @@ public class VelocityHandler extends AbstractHandler {
             HttpServletRequest hrequest,
             HttpServletResponse hresponse) throws IOException, ServletException {
         request.setHandled(false);
-        
+
         String view = (String)request.getAttribute(ATTR_VIEW);
         if (view == null) {
             return;
         }
-        
+
         if (!view.endsWith(".v")) {
             return;
         }
-        
+
         view = getViewPath(uri, view);
         try {
             Template t = engine.getTemplate(view);
             Writer w = hresponse.getWriter();
             t.merge(buildContext(hrequest), w); w.flush();
-            
+
             request.setHandled(true); hresponse.setStatus(HttpStatus.OK_200);
         } catch (ResourceNotFoundException e) {
             hresponse.sendError(HttpStatus.NOT_FOUND_404, "View " + view + " not found.");
@@ -137,38 +137,44 @@ public class VelocityHandler extends AbstractHandler {
     public VelocityEngine getEngine() {
         return engine;
     }
-    
+
     // --------------------------------------------------------- Private methods
-    
+
     /**
-     * Creates a velocity context filling it with all request attributes
-     * 
+     * Creates a velocity context filling it with all request parameters and
+     * attributes (the former overwrite the latter).
+     *
      * @param request the request to create the context upon
-     * 
+     *
      * @return the newly created context
      */
     private VelocityContext buildContext(HttpServletRequest request) {
         VelocityContext context = new VelocityContext();
-        
+
         String key = null;
         for (Enumeration<String> e = request.getAttributeNames(); e.hasMoreElements();) {
             key = e.nextElement();
             context.put(key, request.getAttribute(key));
         }
-        
+
+        for (Enumeration<String> e = request.getParameterNames(); e.hasMoreElements();) {
+            key = e.nextElement();
+            context.put(key, request.getParameter(key));
+        }
+
         return context;
     }
-    
+
     private String getViewPath(final String uri, final String view) {
         File uriFile = new File(uri);
         File viewFile = new File(
                             uriFile.getParent(),
                             new File(
-                                viewsFolder, 
+                                viewsFolder,
                                 view
                             ).getPath()
                         );
-        
+
         return viewFile.getPath();
     }
 }
