@@ -63,7 +63,8 @@
         <dependency>
             <groupId>ste.test</groupId>
             <artifactId>xtest</artifactId>
-            <version>1.0</version>
+            <version>1.2.1</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>javax</groupId>
