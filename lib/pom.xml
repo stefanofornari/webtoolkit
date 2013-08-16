@@ -19,7 +19,7 @@
 
     <groupId>ste.web</groupId>
     <artifactId>beanshellweb-lib</artifactId>
-    <version>1.2.5-SNAPSHOT</version>
+    <version>1.2.5</version>
     <packaging>jar</packaging>
 
     <name>BeanShellWeb (lib)</name>
