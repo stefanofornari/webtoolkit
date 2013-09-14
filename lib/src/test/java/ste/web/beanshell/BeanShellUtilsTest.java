@@ -25,7 +25,6 @@ import bsh.Interpreter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Enumeration;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpURI;
 import org.junit.Test;
