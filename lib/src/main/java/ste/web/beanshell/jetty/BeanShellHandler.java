@@ -121,7 +121,6 @@ public class BeanShellHandler extends AbstractHandler {
             if (view == null) {
                 throw new ServletException("View not defined. Set the variable 'view' to the name of the view to show (without.v).");
             }
-            bsh.set(ATTR_VIEW, view + ".v");
 
             BeanShellUtils.cleanup(bsh, hrequest, hresponse);
             BeanShellUtils.setVariablesAttributes(bsh, request);

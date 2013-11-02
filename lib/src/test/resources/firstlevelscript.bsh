@@ -1,2 +1,2 @@
 first = true;
-view = "main";
+view = "main.v";

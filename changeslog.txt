@@ -1,3 +1,7 @@
+290131102
+- from this version the view name is not appended any more with .v
+- released v1.2.6
+
 20130816
 - removed runtime dependency on junit
 - release 1.2.5
