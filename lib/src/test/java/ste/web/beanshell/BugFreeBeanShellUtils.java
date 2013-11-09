@@ -29,14 +29,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpURI;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import ste.xtest.jetty.mock.TestRequest;
-import ste.xtest.jetty.mock.TestResponse;
 
 import static ste.web.beanshell.Constants.*;
-import static ste.web.beanshell.jetty.BeanShellHandlerTest.TEST_REQ_ATTR_NAME1;
-import static ste.web.beanshell.jetty.BeanShellHandlerTest.TEST_URI_PARAMETERS;
-import static ste.web.beanshell.jetty.BeanShellHandlerTest.TEST_VALUE1;
-import ste.xtest.jetty.mock.TestSession;
+import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_REQ_ATTR_NAME1;
+import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_URI_PARAMETERS;
+import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_VALUE1;
+
+import ste.xtest.jetty.TestRequest;
+import ste.xtest.jetty.TestResponse;
+import ste.xtest.jetty.TestSession;
 
 /**
  * We add some basic tests since the methods are mostly covered by the client
@@ -44,9 +45,9 @@ import ste.xtest.jetty.mock.TestSession;
  *
  * @author ste
  */
-public class BeanShellUtilsTest {
+public class BugFreeBeanShellUtils {
 
-    public BeanShellUtilsTest() {
+    public BugFreeBeanShellUtils() {
     }
 
     @Test

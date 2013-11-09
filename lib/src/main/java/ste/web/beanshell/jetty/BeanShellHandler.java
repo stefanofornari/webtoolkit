@@ -26,6 +26,8 @@ import bsh.Interpreter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -50,11 +52,14 @@ public class BeanShellHandler extends AbstractHandler {
 
     private String controllersFolder;
 
+    private final Logger log;
+
     // ------------------------------------------------------------ Constructors
 
     public BeanShellHandler() {
         bsh = null;
         controllersFolder = null;
+        log = Logger.getLogger(LOG_NAME);
     }
 
     // ---------------------------------------------------------- Public methods
@@ -88,6 +93,10 @@ public class BeanShellHandler extends AbstractHandler {
                        HttpServletResponse hresponse) throws IOException, ServletException {
         request.setHandled(false);
 
+        if (log.isLoggable(Level.FINE)) {
+            log.fine(String.format("serving %s", uri));
+        }
+
         if (!uri.endsWith(".bsh")) {
             return;
         }
@@ -109,17 +118,22 @@ public class BeanShellHandler extends AbstractHandler {
         String controllerPath = scriptFile.getParent() + getControllersFolder();
         scriptFile = new File(controllerPath, scriptFile.getName());
 
+        if (log.isLoggable(Level.FINE)) {
+            log.fine(String.format("script path: %s", scriptFile.getAbsolutePath()));
+        }
+
         try {
             BeanShellUtils.setup(bsh, hrequest, hresponse);
             bsh.set(VAR_SOURCE, scriptFile.getAbsolutePath());
             bsh.eval(BeanShellUtils.getScript(scriptFile));
 
-            //
-            // We need to add .v to the view name
-            //
             String view = (String)bsh.get(ATTR_VIEW);
             if (view == null) {
-                throw new ServletException("View not defined. Set the variable 'view' to the name of the view to show (without.v).");
+                throw new ServletException("View not defined. Set the variable 'view' to the name of the view to show (including .v).");
+            }
+
+            if (log.isLoggable(Level.FINE)) {
+                log.fine("view: " + view);
             }
 
             BeanShellUtils.cleanup(bsh, hrequest, hresponse);

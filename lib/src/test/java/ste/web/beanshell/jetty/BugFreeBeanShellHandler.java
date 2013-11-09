@@ -33,19 +33,19 @@ import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
-import ste.xtest.jetty.mock.TestRequest;
 import static org.junit.Assert.*;
 import org.junit.Before;
 
 import static ste.web.beanshell.Constants.*;
-import ste.xtest.jetty.mock.TestResponse;
-import ste.xtest.jetty.mock.TestSession;
+import ste.xtest.jetty.TestRequest;
+import ste.xtest.jetty.TestResponse;
+import ste.xtest.jetty.TestSession;
 
 /**
  *
  * @author ste
  */
-public class BeanShellHandlerTest {
+public class BugFreeBeanShellHandler {
 
     public static final String TEST_URL_PARAM1 = "p_one";
     public static final String TEST_URL_PARAM2 = "p_two";
@@ -83,12 +83,12 @@ public class BeanShellHandlerTest {
                                          + TEST_VALUE3
                                          ;
 
-    private TestRequest request;
-    private TestResponse response;
-    private Server server;
-    private BeanShellHandler handler;
+    protected TestRequest request;
+    protected TestResponse response;
+    protected Server server;
+    protected BeanShellHandler handler;
 
-    public BeanShellHandlerTest() {
+    public BugFreeBeanShellHandler() {
         request = null;
         response = null;
         server = null;
@@ -96,7 +96,7 @@ public class BeanShellHandlerTest {
     }
 
     @Before
-    public void startUp() throws Exception {
+    public void setUp() throws Exception {
         request = new TestRequest();
         request.setUri(new HttpURI(TEST_URI_PARAMETERS));
         request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);

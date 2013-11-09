@@ -29,18 +29,19 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.MultiMap;
 import org.junit.Test;
-import ste.xtest.jetty.mock.TestRequest;
 import static org.junit.Assert.*;
 import org.junit.Before;
 
 import static ste.web.beanshell.Constants.*;
-import ste.xtest.jetty.mock.TestResponse;
+import ste.xtest.jetty.TestRequest;
+import ste.xtest.jetty.TestResponse;
+
 
 /**
  *
  * @author ste
  */
-public class VelocityHandlerTest {
+public class BugFreeVelocityHandler {
 
     public static final String TEST_URL_PARAM1 = "p_one";
     public static final String TEST_URL_PARAM2 = "p_two";
@@ -70,7 +71,7 @@ public class VelocityHandlerTest {
     private Server server;
     private VelocityHandler handler;
 
-    public VelocityHandlerTest() {
+    public BugFreeVelocityHandler() {
         request = null;
         response = null;
         server = null;
@@ -134,7 +135,7 @@ public class VelocityHandlerTest {
         handler.setViewsFolder("/views");
 
         request.setAttribute(ATTR_VIEW, TEST_VIEW5);
-        handler.handle(BeanShellHandlerTest.TEST_URI4, request, request, response);
+        handler.handle(BugFreeBeanShellHandler.TEST_URI4, request, request, response);
         assertEquals(HttpStatus.OK_200, response.getStatus());
         assertTrue(request.isHandled());
     }
