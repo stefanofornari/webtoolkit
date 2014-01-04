@@ -140,8 +140,14 @@ public class BeanShellHandler extends AbstractHandler {
             BeanShellUtils.setVariablesAttributes(bsh, request);
         } catch (FileNotFoundException e) {
             hresponse.sendError(HttpStatus.NOT_FOUND_404, "Script " + scriptFile + " not found.");
-        } catch (EvalError e) {
-            throw new ServletException("Error evaluating " + uri + ": " + e, e);
+        } catch (EvalError x) {
+            String msg = x.getMessage();
+
+            if (log.isLoggable(Level.SEVERE)) {
+                log.severe(String.format("Error evaluating: %s: %s", uri, msg));
+                log.throwing(getClass().getName(), "handleError", x);
+            }
+            throw new ServletException("Error evaluating " + uri + ": " + msg, x);
         }
     }
 

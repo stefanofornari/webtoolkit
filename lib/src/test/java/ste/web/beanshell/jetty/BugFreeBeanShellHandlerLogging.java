@@ -83,6 +83,24 @@ public class BugFreeBeanShellHandlerLogging extends BugFreeBeanShellHandler {
         assertTrue(messages.contains("serving " + TEST_URI2));
         assertTrue(messages.contains("script path: " + new File("src/test/resources", TEST_URI2).getAbsolutePath()));
         assertTrue(messages.contains("view: secondlevelmain.v"));
+    }
 
+    @Test
+    public void logAtSevereScriptErrors() throws Exception {
+        LOG.setLevel(Level.INFO);
+
+        try {
+            handler.handle(TEST_URI6, request, request, response);
+        } catch (Exception x) {
+            //
+            // of course...
+            //
+        }
+
+        List<String> messages = H.getMessages();
+        String msg = messages.get(0);
+        assertEquals(Level.SEVERE, H.getRecords().get(0).getLevel());
+        assertTrue(msg.contains(TEST_URI6));
+        assertTrue(msg.contains("Encountered \"error\" at line 1, column 20"));
     }
 }

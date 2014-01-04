@@ -146,7 +146,7 @@ public class BugFreeVelocityHandler {
 
         handler.handle("", request, request, response);
         assertEquals(HttpStatus.NOT_FOUND_404, response.getStatus());
-        assertTrue(response.statusMessage.indexOf(TEST_NO_VIEW1)>=0);
+        assertTrue(response.getStatusMessage().indexOf(TEST_NO_VIEW1)>=0);
     }
 
     /**
@@ -189,7 +189,7 @@ public class BugFreeVelocityHandler {
         handler.handle("", request, request, response);
         assertEquals(
             String.format("First (%s,%s,%s,%s)", TEST_VIEW1, TEST_VALUE1, TEST_VALUE2, TEST_VALUE3),
-            response.out.toString()
+            response.getText()
         );
     }
 
@@ -208,7 +208,7 @@ public class BugFreeVelocityHandler {
         handler.handle("", request, request, response);
         assertEquals(
             String.format("Second (%s,%s,%s)", TEST_VALUE1, TEST_VALUE2, TEST_VALUE3),
-            response.out.toString()
+            response.getText()
         );
     }
 

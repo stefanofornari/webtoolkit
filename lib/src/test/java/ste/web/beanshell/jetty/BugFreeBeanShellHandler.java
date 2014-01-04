@@ -143,7 +143,7 @@ public class BugFreeBeanShellHandler {
     public void scriptNotFound() throws Exception {
         handler.handle(TEST_URI5, request, request, response);
         assertEquals(HttpStatus.NOT_FOUND_404, response.getStatus());
-        assertTrue(response.statusMessage.indexOf(TEST_URI5)>=0);
+        assertTrue(response.getStatusMessage().indexOf(TEST_URI5)>=0);
     }
 
     @Test
