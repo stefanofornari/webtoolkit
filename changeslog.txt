@@ -1,3 +1,7 @@
+20131204
+- added logging of errors that occur in beanshell scripts evaluation
+- released v1.2.8
+
 20131108
 - switched to BugFree* convention for bug free code
 - added logging to BeanShellHandler
