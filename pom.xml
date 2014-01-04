@@ -19,7 +19,7 @@
 
     <groupId>ste.web</groupId>
     <artifactId>beanshellweb</artifactId>
-    <version>1.2.8-SNAPSHOT</version>
+    <version>1.2.8</version>
     <packaging>pom</packaging>
 
     <name>BeanShellWeb</name>
@@ -73,7 +73,7 @@
     <scm>
         <connection>scm:git:git@github.com:stefanofornari/beanshellweb.git</connection>
         <url>http://github.com/stefanofornari/beanshellservlet/tree/master</url>
-      <tag>HEAD</tag>
+      <tag>beanshellweb-1.2.8</tag>
   </scm>
 
     <distributionManagement>
