@@ -25,7 +25,6 @@ import static org.junit.Assert.*;
 import        org.junit.Test;
 
 import org.eclipse.jetty.server.session.HashSessionManager;
-import ste.web.beanshell.Constants;
 import ste.xtest.beanshell.BeanShellTest;
 import ste.xtest.jetty.TestRequest;
 import ste.xtest.jetty.TestResponse;
@@ -34,8 +33,7 @@ import ste.xtest.jetty.TestResponse;
  *
  * @author ste
  */
-public class ConsoleControllerTest extends BeanShellTest
-                               implements Constants {
+public class ConsoleControllerTest extends BeanShellTest {
 
     public static final String TEST_VALUE1 = "Hello world";
     public static final String TEST_SCRIPT1 = "s = \"%s\";";
@@ -74,7 +72,7 @@ public class ConsoleControllerTest extends BeanShellTest
 
         TestRequest r = (TestRequest)beanshell.get("request");
         assertEquals(TEST_VALUE1, beanshell.get("s"));
-        assertEquals(TEST_VIEW, beanshell.get(ATTR_VIEW));
+        assertEquals(TEST_VIEW, beanshell.get("view"));
     }
 
     @Test
