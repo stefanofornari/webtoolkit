@@ -1,3 +1,6 @@
+20140111
+- updated dependency xtest:1.4.0
+
 20131204
 - added logging of errors that occur in beanshell scripts evaluation
 - released v1.2.8
