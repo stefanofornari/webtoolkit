@@ -26,73 +26,73 @@ import        org.junit.Test;
 
 import org.eclipse.jetty.server.session.HashSessionManager;
 import ste.web.beanshell.Constants;
-import ste.xtest.jetty.mock.TestRequest;
-import ste.xtest.jetty.mock.TestResponse;
 import ste.xtest.beanshell.BeanShellTest;
+import ste.xtest.jetty.TestRequest;
+import ste.xtest.jetty.TestResponse;
 
 /**
  *
  * @author ste
  */
-public class ConsoleControllerTest extends BeanShellTest 
+public class ConsoleControllerTest extends BeanShellTest
                                implements Constants {
-    
+
     public static final String TEST_VALUE1 = "Hello world";
     public static final String TEST_SCRIPT1 = "s = \"%s\";";
     public static final String TEST_SCRIPT2 = "print(\"%s\");";
     public static final String TEST_SCRIPT_ERROR = "an error";
     public static final String TEST_VIEW = "main";
-    
+
     public ConsoleControllerTest() throws Exception {
         setCommandsDirectory("src/main/webapp/WEB-INF/commands");
         setBshFileName("src/main/webapp/console/c/exec.bsh");
     }
-    
+
     @Override
     protected void beanshellSetup() throws Exception {
         TestRequest r = new TestRequest();
         r.setSessionManager(new HashSessionManager());
-        
+
         beanshell.set("request", r);
         beanshell.set("source", "src/main/webapp/console/c/exec.bsh");
         beanshell.set("response", new TestResponse());
         //beanshell.set("session", r.getSession());
     }
-    
+
     @Test
     public void noScript() throws Exception {
         //
         // Nothing for now
         //
     }
-    
+
     @Test
     public void execScript() throws Exception {
         beanshell.set("script", String.format(TEST_SCRIPT1, TEST_VALUE1));
-        
+
         exec();
-        
+
         TestRequest r = (TestRequest)beanshell.get("request");
         assertEquals(TEST_VALUE1, beanshell.get("s"));
         assertEquals(TEST_VIEW, beanshell.get(ATTR_VIEW));
     }
-    
+
     @Test
     public void captureStdout() throws Exception {
         beanshell.set("script", String.format(TEST_SCRIPT2, TEST_VALUE1));
-        
+
         exec();
-        
+
         assertEquals(TEST_VALUE1+"\n", beanshell.get("result"));
-    
+
     }
-    
+
     @Test
     public void scriptError() throws Exception {
         beanshell.set("script", TEST_SCRIPT_ERROR);
-        
+
         exec();
-        
+
         String result =(String)beanshell.get("result");
         assertTrue(result.startsWith("Error"));
     }
