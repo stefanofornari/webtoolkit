@@ -70,18 +70,18 @@ public class BugFreeBeanShellHandlerLogging extends BugFreeBeanShellHandler {
     public void logAtFineForServedURIAndScript() throws Exception {
         LOG.setLevel(Level.ALL);
 
-        handler.handle(TEST_URI1, request, request, response);
+        handler.handle(TEST_URI01, request, request, response);
 
         List<String> messages = H.getMessages();
         System.out.println("messages: " + messages);
-        assertTrue(messages.contains("serving " + TEST_URI1));
-        assertTrue(messages.contains("script path: " + new File("src/test/resources", TEST_URI1).getAbsolutePath()));
+        assertTrue(messages.contains("serving " + TEST_URI01));
+        assertTrue(messages.contains("script path: " + new File("src/test/resources", TEST_URI01).getAbsolutePath()));
         assertTrue(messages.contains("view: main.v"));
 
-        handler.handle(TEST_URI2, request, request, response);
+        handler.handle(TEST_URI02, request, request, response);
         messages = H.getMessages();
-        assertTrue(messages.contains("serving " + TEST_URI2));
-        assertTrue(messages.contains("script path: " + new File("src/test/resources", TEST_URI2).getAbsolutePath()));
+        assertTrue(messages.contains("serving " + TEST_URI02));
+        assertTrue(messages.contains("script path: " + new File("src/test/resources", TEST_URI02).getAbsolutePath()));
         assertTrue(messages.contains("view: secondlevelmain.v"));
     }
 
@@ -90,7 +90,7 @@ public class BugFreeBeanShellHandlerLogging extends BugFreeBeanShellHandler {
         LOG.setLevel(Level.INFO);
 
         try {
-            handler.handle(TEST_URI6, request, request, response);
+            handler.handle(TEST_URI06, request, request, response);
         } catch (Exception x) {
             //
             // of course...
@@ -100,7 +100,7 @@ public class BugFreeBeanShellHandlerLogging extends BugFreeBeanShellHandler {
         List<String> messages = H.getMessages();
         String msg = messages.get(0);
         assertEquals(Level.SEVERE, H.getRecords().get(0).getLevel());
-        assertTrue(msg.contains(TEST_URI6));
+        assertTrue(msg.contains(TEST_URI06));
         assertTrue(msg.contains("Encountered \"error\" at line 1, column 20"));
     }
 }

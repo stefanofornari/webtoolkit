@@ -59,15 +59,16 @@ public class BugFreeBeanShellHandler {
     public static final String TEST_VALUE2 = "due";
     public static final String TEST_VALUE3 = "tre";
 
-    public static final String TEST_URI1 = "/firstlevelscript.bsh";
-    public static final String TEST_URI2 = "/first/secondlevelscript.bsh";
-    public static final String TEST_URI3 = "/firstlevelcontroller.bsh";
-    public static final String TEST_URI4 = "/first/secondlevelcontroller.bsh";
-    public static final String TEST_URI5 = "/notexisting.bsh";
-    public static final String TEST_URI6 = "/withevalerror.bsh";
-    public static final String TEST_URI7 = "/withtargeterror.bsh";
-    public static final String TEST_URI8 = "/nobsh";
-    public static final String TEST_URI9 = "/parameters.bsh";
+    public static final String TEST_URI01 = "/firstlevelscript.bsh";
+    public static final String TEST_URI02 = "/first/secondlevelscript.bsh";
+    public static final String TEST_URI03 = "/firstlevelcontroller.bsh";
+    public static final String TEST_URI04 = "/first/secondlevelcontroller.bsh";
+    public static final String TEST_URI05 = "/notexisting.bsh";
+    public static final String TEST_URI06 = "/withevalerror.bsh";
+    public static final String TEST_URI07 = "/withtargeterror.bsh";
+    public static final String TEST_URI08 = "/nobsh";
+    public static final String TEST_URI09 = "/parameters.bsh";
+    public static final String TEST_URI10 = "/missingview.bsh";
 
     public static final String TEST_URI_PARAMETERS = "/some/parameters?"
                                          + TEST_URL_PARAM1
@@ -119,11 +120,11 @@ public class BugFreeBeanShellHandler {
 
     @Test
     public void execScriptDefaultDirs() throws Exception {
-        handler.handle(TEST_URI1, request, request, response);
+        handler.handle(TEST_URI01, request, request, response);
         assertFalse(request.isHandled());
         assertNotNull(handler.getInterpreter().get("first"));
 
-        handler.handle(TEST_URI2, request, request, response);
+        handler.handle(TEST_URI02, request, request, response);
         assertNotNull(handler.getInterpreter().get("second"));
         assertFalse(request.isHandled());
     }
@@ -132,50 +133,50 @@ public class BugFreeBeanShellHandler {
     public void execScriptNonDefaultDirs() throws Exception {
         handler.setControllersFolder("controllers");
 
-        handler.handle(TEST_URI3, request, request, response);
+        handler.handle(TEST_URI03, request, request, response);
         assertNotNull(handler.getInterpreter().get("firstcontroller"));
 
-        handler.handle(TEST_URI4, request, request, response);
+        handler.handle(TEST_URI04, request, request, response);
         assertNotNull(handler.getInterpreter().get("secondcontroller"));
     }
 
     @Test
     public void scriptNotFound() throws Exception {
-        handler.handle(TEST_URI5, request, request, response);
+        handler.handle(TEST_URI05, request, request, response);
         assertEquals(HttpStatus.NOT_FOUND_404, response.getStatus());
-        assertTrue(response.getStatusMessage().indexOf(TEST_URI5)>=0);
+        assertTrue(response.getStatusMessage().indexOf(TEST_URI05)>=0);
     }
 
     @Test
     public void scriptError() {
         try {
-            handler.handle(TEST_URI6, request, request, response);
-            fail(TEST_URI6 + " error shall throw a ServletException");
+            handler.handle(TEST_URI06, request, request, response);
+            fail(TEST_URI06 + " error shall throw a ServletException");
         } catch (ServletException e) {
             //
             // OK
             //
             assertTrue(e.getCause() instanceof EvalError);
         } catch (Exception e) {
-            fail(TEST_URI6 + " error shall throw a ServletException instead of " + e);
+            fail(TEST_URI06 + " error shall throw a ServletException instead of " + e);
         }
 
         try {
-            handler.handle(TEST_URI7, request, request, response);
-            fail(TEST_URI7 + " error shall throw a ServletException");
+            handler.handle(TEST_URI07, request, request, response);
+            fail(TEST_URI07 + " error shall throw a ServletException");
         } catch (ServletException e) {
             //
             // OK
             //
             assertTrue(e.getCause() instanceof EvalError);
         } catch (Exception e) {
-            fail(TEST_URI7 + " error shall throw a ServletException instead of " + e);
+            fail(TEST_URI07 + " error shall throw a ServletException instead of " + e);
         }
     }
 
     @Test
     public void execBshOnly() throws Exception {
-        handler.handle(TEST_URI8, request, request, response);
+        handler.handle(TEST_URI08, request, request, response);
         assertFalse(request.isHandled());
     }
 
@@ -185,7 +186,7 @@ public class BugFreeBeanShellHandler {
 
         request.setSession(session);
 
-        handler.handle(TEST_URI1, request, request, response);
+        handler.handle(TEST_URI01, request, request, response);
 
         Interpreter i = handler.getInterpreter();
         assertSame(i.get(VAR_REQUEST), request);
@@ -194,21 +195,31 @@ public class BugFreeBeanShellHandler {
         assertNotNull(i.get(VAR_LOG));
         assertNotNull(i.get(VAR_OUT));
         assertEquals(
-            new File((String)server.getAttribute(ATTR_APP_ROOT), TEST_URI1).getAbsolutePath(),
+            new File((String)server.getAttribute(ATTR_APP_ROOT), TEST_URI01).getAbsolutePath(),
             handler.getInterpreter().get(VAR_SOURCE)
         );
     }
 
     @Test
     public void returnView() throws Exception {
-        handler.handle(TEST_URI1, request, request, response);
+        handler.handle(TEST_URI01, request, request, response);
         Interpreter i = handler.getInterpreter();
         assertEquals("main.v", i.get(ATTR_VIEW));
     }
 
     @Test
+    public void missingView() throws Exception {
+        try {
+            handler.handle(TEST_URI10, request, request, response);
+            fail(TEST_URI06 + " error shall throw a ServletException");
+        } catch (ServletException e) {
+            assertTrue(e.getMessage().contains("view not defined"));
+        }
+    }
+
+    @Test
     public void requestParameters() throws Exception {
-        handler.handle(TEST_URI9, request, request, response);
+        handler.handle(TEST_URI09, request, request, response);
         Interpreter i = handler.getInterpreter();
 
         assertEquals(
@@ -229,7 +240,7 @@ public class BugFreeBeanShellHandler {
 
     @Test
     public void requestAttributes() throws Exception {
-        handler.handle(TEST_URI1, request, request, response);
+        handler.handle(TEST_URI01, request, request, response);
         Interpreter i = handler.getInterpreter();
         Enumeration<String> attrs = request.getAttributeNames();
         while (attrs.hasMoreElements()) {
@@ -240,7 +251,7 @@ public class BugFreeBeanShellHandler {
 
     @Test
     public void variablesAttribute() throws Exception {
-        handler.handle(TEST_URI1, request, request, response);
+        handler.handle(TEST_URI01, request, request, response);
         Interpreter i = handler.getInterpreter();
         assertTrue((Boolean)request.getAttribute("first"));
         assertNull(request.getAttribute("something")); // just to make sure it

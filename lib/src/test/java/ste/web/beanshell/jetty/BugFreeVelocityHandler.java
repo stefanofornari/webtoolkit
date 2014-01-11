@@ -135,7 +135,7 @@ public class BugFreeVelocityHandler {
         handler.setViewsFolder("/views");
 
         request.setAttribute(ATTR_VIEW, TEST_VIEW5);
-        handler.handle(BugFreeBeanShellHandler.TEST_URI4, request, request, response);
+        handler.handle(BugFreeBeanShellHandler.TEST_URI04, request, request, response);
         assertEquals(HttpStatus.OK_200, response.getStatus());
         assertTrue(request.isHandled());
     }

@@ -129,7 +129,7 @@ public class BeanShellHandler extends AbstractHandler {
 
             String view = (String)bsh.get(ATTR_VIEW);
             if (view == null) {
-                throw new ServletException("View not defined. Set the variable 'view' to the name of the view to show (including .v).");
+                throw new ServletException("view not defined. Set the variable 'view' to the name of the view to show (including .v).");
             }
 
             if (log.isLoggable(Level.FINE)) {
@@ -144,10 +144,10 @@ public class BeanShellHandler extends AbstractHandler {
             String msg = x.getMessage();
 
             if (log.isLoggable(Level.SEVERE)) {
-                log.severe(String.format("Error evaluating: %s: %s", uri, msg));
+                log.severe(String.format("error evaluating: %s: %s", uri, msg));
                 log.throwing(getClass().getName(), "handleError", x);
             }
-            throw new ServletException("Error evaluating " + uri + ": " + msg, x);
+            throw new ServletException("error evaluating " + uri + ": " + msg, x);
         }
     }
 
