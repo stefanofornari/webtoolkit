@@ -26,9 +26,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Enumeration;
 import javax.servlet.http.HttpServletResponse;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.BDDAssertions.then;
 import org.eclipse.jetty.http.HttpURI;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import static ste.web.beanshell.Constants.*;
 import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_REQ_ATTR_NAME1;
@@ -51,11 +52,6 @@ public class BugFreeBeanShellUtils {
     }
 
     @Test
-    public void doDonInstantiate() {
-        new BeanShellUtils();
-    }
-
-    @Test
     public void getScriptNull() throws Exception {
         try {
             BeanShellUtils.getScript(null);
@@ -69,11 +65,11 @@ public class BugFreeBeanShellUtils {
 
     @Test
     public void getScript() throws Exception {
-        assertTrue(
+        then(
             BeanShellUtils.getScript(
                 new File("src/test/resources/firstlevelscript.bsh")
-            ).indexOf("first = true;") >= 0
-        );
+            )
+        ).contains("first = true;");
     }
 
     @Test
@@ -102,16 +98,16 @@ public class BugFreeBeanShellUtils {
 
         BeanShellUtils.setup(i, request, response);
 
-        assertNotNull(i.get(VAR_REQUEST));
-        assertNotNull(i.get(VAR_RESPONSE));
-        assertNotNull(i.get(VAR_SESSION));
-        assertNotNull(i.get(VAR_OUT));
-        assertNotNull(i.get(VAR_LOG));
+        then(i.get(VAR_REQUEST)).isNotNull();
+        then(i.get(VAR_RESPONSE)).isNotNull();
+        then(i.get(VAR_SESSION)).isNotNull();
+        then(i.get(VAR_OUT)).isNotNull();
+        then(i.get(VAR_LOG)).isNotNull();
 
         Enumeration<String> params = request.getParameterNames();
         while (params.hasMoreElements()) {
             String param = params.nextElement();
-            assertEquals(request.getParameter(param), i.get(param));
+            then(i.get(param)).isEqualTo(request.getParameter(param));
         }
     }
 
@@ -134,17 +130,17 @@ public class BugFreeBeanShellUtils {
         //
         Enumeration<String> params = request.getParameterNames();
         while (params.hasMoreElements()) {
-            assertNull(i.get(params.nextElement()));
+            then(i.get(params.nextElement())).isNull();
         }
 
         //
         // Make sure we do not unset too much :)
         //
-        assertNotNull(i.get(VAR_REQUEST));
-        assertNotNull(i.get(VAR_RESPONSE));
-        assertNotNull(i.get(VAR_SESSION));
-        assertNotNull(i.get(VAR_OUT));
-        assertNotNull(i.get(VAR_LOG));
+        then(i.get(VAR_REQUEST)).isNotNull();
+        then(i.get(VAR_RESPONSE)).isNotNull();
+        then(i.get(VAR_SESSION)).isNotNull();
+        then(i.get(VAR_OUT)).isNotNull();
+        then(i.get(VAR_LOG)).isNotNull();
     }
 
     @Test
@@ -181,9 +177,9 @@ public class BugFreeBeanShellUtils {
 
         i.eval("one=1; two=2;");
         BeanShellUtils.setVariablesAttributes(i, r);
-        assertEquals(1, r.getAttribute("one"));
-        assertEquals(2, r.getAttribute("two"));
-        assertNull(r.getAttribute("three")); // just to make sure it
+        then(r.getAttribute("one")).isEqualTo(1);
+        then(r.getAttribute("two")).isEqualTo(2);
+        then(r.getAttribute("three")).isNull(); // just to make sure it
                                              // does not always return
                                              // the same
     }
