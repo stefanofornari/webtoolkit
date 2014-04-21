@@ -23,14 +23,20 @@ package ste.web.beanshell;
 
 import bsh.EvalError;
 import bsh.Interpreter;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Enumeration;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import static ste.web.beanshell.Constants.*;
 
@@ -47,6 +53,7 @@ public class BeanShellUtils {
     public static final String LOG_NAME = "ste.web";
     public static final String PARAM_CONTROLLERS = "controllers-prefix";
     public static final String PARAM_VIEWS = "views-prefix";
+    public static final String CONTENT_TYPE_JSON = "application/json";
 
     public static final Logger log = Logger.getLogger(LOG_NAME);
 
@@ -111,6 +118,9 @@ public class BeanShellUtils {
         interpreter.set(VAR_SESSION,  request.getSession(false));
         interpreter.set(VAR_OUT,      response.getWriter()     );
         interpreter.set(VAR_LOG,      log                      );
+        if (hasJSONBody(request)) {
+            interpreter.set(VAR_BODY, getJSONBody(request));
+        }
     }
 
     /**
@@ -154,5 +164,43 @@ public class BeanShellUtils {
         for(String var: vars) {
             r.setAttribute(var, i.get(var));
         }
+    }
+    
+    /**
+     * Returns true if the request content is supposed to contain a json object
+     * as per the specified content type
+     * 
+     * @param request the request
+     * 
+     * @return true if the content type is "application/json", false otherwise
+     */
+    public static boolean hasJSONBody(HttpServletRequest request) {
+        return CONTENT_TYPE_JSON.equals(request.getContentType());
+    }
+    
+    // --------------------------------------------------------- private methods
+    
+    private static Object getJSONBody(HttpServletRequest request) 
+    throws IOException {
+        Object o = null;
+        try {
+            BufferedInputStream is = new BufferedInputStream(request.getInputStream());
+            is.mark(0);
+            if (is.read() == '{') {
+                is.reset();
+                o = new JSONObject(
+                    new JSONTokener(new InputStreamReader(is))
+                );
+            } else {
+                is.reset();
+                o = new JSONArray(
+                    new JSONTokener(new InputStreamReader(is))
+                );
+            }
+        } catch (JSONException x) {
+            throw new IOException("error parsing the body as a JSON object", x);
+        }
+        
+        return o;
     }
 }

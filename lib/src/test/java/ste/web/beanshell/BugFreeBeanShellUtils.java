@@ -24,11 +24,15 @@ package ste.web.beanshell;
 import bsh.Interpreter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Enumeration;
 import javax.servlet.http.HttpServletResponse;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.eclipse.jetty.http.HttpURI;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
 
 import static ste.web.beanshell.Constants.*;
@@ -43,6 +47,8 @@ import ste.xtest.jetty.TestSession;
 /**
  * We add some basic tests since the methods are mostly covered by the client
  * classes' tests.
+ * 
+ * TODO: handle JSON errors when content is JSON
  *
  * @author ste
  */
@@ -182,5 +188,91 @@ public class BugFreeBeanShellUtils {
         then(r.getAttribute("three")).isNull(); // just to make sure it
                                              // does not always return
                                              // the same
+    }
+    
+    @Test
+    public void bodyAsNotSpecifiedType() throws Exception {
+        Interpreter i = new Interpreter();
+        
+        TestRequest request = new TestRequest();
+        request.setUri(new HttpURI(TEST_URI_PARAMETERS));
+        request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
+        request.setSession(new TestSession());
+        request.setContent("one=1&two=2");
+
+        BeanShellUtils.setup(i, request, new TestResponse());
+        
+        Object o = i.get(VAR_BODY);
+        then(o).isNull();
+    }
+    
+    @Test
+    public void bodyAsJSONObject() throws Exception {
+        final String TEST_LABEL1 = "label1";
+        final String TEST_LABEL2 = "label2";
+        final String TEST_VALUE1 = "a first label";
+        final String TEST_VALUE2 = "a second label";
+        
+        
+        Interpreter i = new Interpreter();
+        
+        TestRequest request = new TestRequest();
+        request.setUri(new HttpURI(TEST_URI_PARAMETERS));
+        request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
+        request.setSession(new TestSession());
+        request.setContentType("application/json");
+        request.setContent(String.format("{%s:'%s'}", TEST_LABEL1, TEST_VALUE1));
+
+        BeanShellUtils.setup(i, request, new TestResponse());
+        
+        Object o = i.get(VAR_BODY);
+        then(o).isNotNull().isInstanceOf(JSONObject.class);
+        then(((JSONObject)o).getString(TEST_LABEL1)).isEqualTo(TEST_VALUE1);
+        
+        request.setContent(
+            String.format(
+                "[{%s:'%s'}, {%s:'%s'}]",  
+                TEST_LABEL1, TEST_VALUE1,
+                TEST_LABEL2, TEST_VALUE2
+            )
+        );
+        
+        BeanShellUtils.setup(i, request, new TestResponse());
+        
+        o = i.get(VAR_BODY);
+        then(o).isNotNull().isInstanceOf(JSONArray.class);
+        JSONArray a = (JSONArray)o;
+        then(a.length()).isEqualTo(2); 
+        o = a.getJSONObject(0);
+        then(((JSONObject)o).getString(TEST_LABEL1)).isEqualTo(TEST_VALUE1);
+        o = a.getJSONObject(1);
+        then(((JSONObject)o).getString(TEST_LABEL2)).isEqualTo(TEST_VALUE2);
+    }
+    
+    @Test
+    public void bodyAsCorruptedJSONObject() throws Exception {
+        Interpreter i = new Interpreter();
+        
+        TestRequest request = new TestRequest();
+        request.setUri(new HttpURI(TEST_URI_PARAMETERS));
+        request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
+        request.setSession(new TestSession());
+        request.setContentType("application/json");
+        
+        final String[] ERRORS = {
+            "", "   ", "\t ",
+            "a string", "{ 'label': value", "'label': 'value'", "[{} {}]",
+            "[{} {}]", "['uno', 'due'", "'tre', 'quattro']"
+        };
+        
+        for (String e: ERRORS) {
+            request.setContent(e);
+            try {
+                BeanShellUtils.setup(i, request, new TestResponse());
+                fail("JSONException not thrown for <" + e + ">");
+            } catch (IOException x) {
+                then(x.getCause()).isNotNull().isInstanceOf(JSONException.class);
+            }
+        }
     }
 }

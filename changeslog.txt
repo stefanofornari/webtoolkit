@@ -1,3 +1,8 @@
+20140421
+- released v1.3.0
+- updated dependncy xtest:1.4.2
+- added 'body' property containing a json object if content type is application/json
+ 
 20140111
 - updated dependency xtest:1.4.0
 

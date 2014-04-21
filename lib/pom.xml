@@ -63,7 +63,7 @@
         <dependency>
             <groupId>ste.test</groupId>
             <artifactId>xtest</artifactId>
-            <version>1.4.0</version>
+            <version>1.4.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -71,6 +71,11 @@
             <artifactId>assertj-core</artifactId>
             <version>1.6.0</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson</groupId>
+            <artifactId>jackson-datatype-json-org</artifactId>
+            <version>1.8.0</version>
         </dependency>
         <dependency>
             <groupId>javax</groupId>
@@ -94,8 +99,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                     <compilerArguments>
                         <endorseddirs>${endorsed.dir}</endorseddirs>
                     </compilerArguments>

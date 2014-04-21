@@ -41,5 +41,6 @@ public interface Constants {
     public static final String VAR_SESSION  = "session" ;
     public static final String VAR_OUT      = "out"     ;
     public static final String VAR_LOG      = "log"     ;
+    public static final String VAR_BODY     = "body"    ;
     
 }
