@@ -250,6 +250,30 @@ public class BugFreeBeanShellUtils {
     }
     
     @Test
+    public void bodyAsJSONObjectWithCharset() throws Exception {
+        final String TEST_LABEL1 = "label1";
+        final String TEST_LABEL2 = "label2";
+        final String TEST_VALUE1 = "a first label";
+        final String TEST_VALUE2 = "a second label";
+        
+        
+        Interpreter i = new Interpreter();
+        
+        TestRequest request = new TestRequest();
+        request.setUri(new HttpURI(TEST_URI_PARAMETERS));
+        request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
+        request.setSession(new TestSession());
+        request.setContentType("application/json;charset=utf-8");
+        request.setContent(String.format("{%s:'%s'}", TEST_LABEL1, TEST_VALUE1));
+
+        BeanShellUtils.setup(i, request, new TestResponse());
+        
+        Object o = i.get(VAR_BODY);
+        then(o).isNotNull().isInstanceOf(JSONObject.class);
+        then(((JSONObject)o).getString(TEST_LABEL1)).isEqualTo(TEST_VALUE1);
+    }
+    
+    @Test
     public void bodyAsCorruptedJSONObject() throws Exception {
         Interpreter i = new Interpreter();
         

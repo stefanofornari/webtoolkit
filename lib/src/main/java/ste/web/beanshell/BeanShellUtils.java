@@ -175,7 +175,13 @@ public class BeanShellUtils {
      * @return true if the content type is "application/json", false otherwise
      */
     public static boolean hasJSONBody(HttpServletRequest request) {
-        return CONTENT_TYPE_JSON.equals(request.getContentType());
+        String contentType = request.getContentType();
+        if (contentType == null) {
+            return false;
+        }
+        
+        return CONTENT_TYPE_JSON.equals(contentType)
+            || contentType.startsWith(CONTENT_TYPE_JSON + ";");
     }
     
     // --------------------------------------------------------- private methods
