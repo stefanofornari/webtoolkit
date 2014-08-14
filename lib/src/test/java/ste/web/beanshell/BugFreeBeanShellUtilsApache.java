@@ -1,6 +1,6 @@
 /*
  * BeanShell Web
- * Copyright (C) 2012 Stefano Fornari
+ * Copyright (C) 2014 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -22,13 +22,19 @@
 package ste.web.beanshell;
 
 import bsh.Interpreter;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicHttpEntityEnclosingRequest;
+import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpCoreContext;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.eclipse.jetty.http.HttpURI;
@@ -42,113 +48,120 @@ import static ste.web.beanshell.Constants.*;
 import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_REQ_ATTR_NAME1;
 import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_URI_PARAMETERS;
 import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_VALUE1;
+import ste.web.http.BasicHttpConnection;
 import ste.web.http.BasicHttpRequest;
+import ste.web.http.HttpSessionContext;
 
 import ste.xtest.jetty.TestRequest;
 import ste.xtest.jetty.TestResponse;
 import ste.xtest.jetty.TestSession;
+import ste.xtest.net.TestSocket;
 
 /**
  * We add some basic tests since the methods are mostly covered by the client
- * classes' tests. Note that specific behaviour for different types of containers
- * are specified in dedicated bug free classes.
+ * classes' tests.
  * 
  * TODO: handle JSON errors when content is JSON
  *
  * @author ste
  */
-public class BugFreeBeanShellUtils {
-
-    @Test
-    public void getScriptNull() throws Exception {
-        try {
-            BeanShellUtils.getScript(null);
-            fail("getScript cannot be invoched with null");
-        } catch (IllegalArgumentException e) {
-            //
-            // OK
-            //
-        }
-    }
-
-    @Test
-    public void getScript() throws Exception {
-        then(
-            BeanShellUtils.getScript(
-                new File("src/test/resources/firstlevelscript.bsh")
-            )
-        ).contains("first = true;");
-    }
-
-    @Test
-    public void getNotExistingScript() throws Exception {
-        try {
-            BeanShellUtils.getScript(new File("src/test/resources/notexistingscript.bsh"));
-            fail("file not found exception expected");
-        } catch (FileNotFoundException e) {
-            //
-            // OK
-            //
-        }
-    }
-    
-    // ------------------------------------------------------- protected methods
+public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
 
     /**
-     * 
-     * @param i
-     * @param parameters
-     * @param attributes
-     * 
-     * @throws java.lang.Exception
+     * Test of setup method, of class BeanShellUtils.
      */
-    protected void checkSetup(
-        Interpreter i, 
-        Map<String, List<String>> parameters,
-        Map<String, List<String>> attributes
-    ) throws Exception {
-        then(i.get(VAR_REQUEST)).isNotNull();
-        then(i.get(VAR_RESPONSE)).isNotNull();
-        then(i.get(VAR_SESSION)).isNotNull();
-        then(i.get(VAR_OUT)).isNotNull();
-        then(i.get(VAR_LOG)).isNotNull();
+    @Test
+    public void setup() throws Exception {
+        BasicHttpRequest request = new BasicHttpRequest(TEST_URI_PARAMETERS);
+        BasicHttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpSessionContext context = new HttpSessionContext();
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
+        context.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
 
-        for (String name: parameters.keySet()) {
-            then(i.get(name)).isEqualTo(parameters.get(name).get(0));
-        }
+        Interpreter i = new Interpreter();
+        BeanShellUtils.setup(i, request, response, context);
         
-        for (String name: attributes.keySet()) {
-            then(i.get(name)).isEqualTo(attributes.get(name).get(0));
-        }
+        Map<String, List<String>> attributes = new HashMap<>();
+        attributes.put(TEST_REQ_ATTR_NAME1, Arrays.asList(TEST_VALUE1));
+        
+        checkSetup(i, request.getQueryString().getMap(), attributes);
     }
 
-    protected void checkCleanup(
-        Interpreter i, 
-        Set<String> parameters
-    ) throws Exception {
+    @Test
+    public void cleanup() throws Exception {
+        BasicHttpRequest request = new BasicHttpRequest(TEST_URI_PARAMETERS);
+        BasicHttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        HttpSessionContext context = new HttpSessionContext();
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
+        context.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
+
+        Interpreter i = new Interpreter();
+        BeanShellUtils.setup(i, request, response, context);
+        BeanShellUtils.cleanup(i, request);
+
         //
         // We need to make sure that after the handling of the request,
         // parameters are not valid variable any more so to avoid that next
         // invocations will inherit them
         //
-        for (String name: parameters) {
-            then(i.get(name)).isNull();
+        checkCleanup(i, request.getQueryString().getNames());
+    }
+
+    @Test
+    public void setRequestAttributes() throws Exception {
+        Interpreter i = new Interpreter();
+        BasicHttpContext c = new BasicHttpContext();
+
+        try {
+            BeanShellUtils.setVariablesAttributes(null, (BasicHttpContext)null);
+            fail("illegal argument exception expected");
+        } catch (IllegalArgumentException e) {
+            //
+            // OK
+            //
         }
 
-        //
-        // Make sure we do not unset too much :)
-        //
-        then(i.get(VAR_REQUEST)).isNotNull();
-        then(i.get(VAR_RESPONSE)).isNotNull();
-        then(i.get(VAR_SESSION)).isNotNull();
-        then(i.get(VAR_OUT)).isNotNull();
-        then(i.get(VAR_LOG)).isNotNull();
+        try {
+            BeanShellUtils.setVariablesAttributes(null, c);
+            fail("illegal argument exception expected");
+        } catch (IllegalArgumentException e) {
+            //
+            // OK
+            //
+        }
+
+        try {
+            BeanShellUtils.setVariablesAttributes(i, (BasicHttpContext)null);
+            fail("illegal argument exception expected");
+        } catch (IllegalArgumentException e) {
+            //
+            // OK
+            //
+        }
+
+        i.eval("one=1; two=2;");
+        BeanShellUtils.setVariablesAttributes(i, c);
+        then(c.getAttribute("one")).isEqualTo(1);
+        then(c.getAttribute("two")).isEqualTo(2);
+        then(c.getAttribute("three")).isNull(); // just to make sure it
+                                                // does not always return
+                                                // the same
     }
-    
-    protected void checkBodyAsNotSpecifiedType(final Interpreter i) throws Exception {
-        then(i.get(VAR_BODY)).isNull();
-    }
+    /*
+    @Test
+    public void bodyAsNotSpecifiedType() throws Exception {
+        BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("get", TEST_URI_PARAMETERS);
+        BasicHttpContext context = new BasicHttpContext();
+        context.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
+        request.setEntity(new StringEntity("one=1&two=2"));
+
+        Interpreter i = new Interpreter();
+        BeanShellUtils.setup(i, request, new TestResponse());
         
+        Object o = i.get(VAR_BODY);
+        then(o).isNull();
+    }*/
+    
     @Test
     public void bodyAsJSONObject() throws Exception {
         final String TEST_LABEL1 = "label1";
@@ -249,5 +262,14 @@ public class BugFreeBeanShellUtils {
         r.removeHeaders(HTTP.CONTENT_TYPE);
         r.addHeader(HTTP.CONTENT_TYPE, CONTENT_TYPE_JSON);
         then(BeanShellUtils.hasJSONBody(r)).isTrue();
+    }
+    
+    // --------------------------------------------------------- private methods
+    
+    private BasicHttpConnection getConnection() throws IOException {
+        BasicHttpConnection c = new BasicHttpConnection();
+        c.bind(new TestSocket());
+        
+        return c;
     }
 }

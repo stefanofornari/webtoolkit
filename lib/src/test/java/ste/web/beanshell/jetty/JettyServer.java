@@ -19,6 +19,8 @@ import org.eclipse.jetty.util.resource.Resource;
 import ste.web.beanshell.BeanShellServlet;
 import ste.web.beanshell.jetty.BeanShellHandler;
 import ste.web.beanshell.jetty.BeanShellHandler;
+import ste.web.beanshell.jetty.BeanShellHandler;
+import ste.web.beanshell.jetty.VelocityHandler;
 import ste.web.beanshell.jetty.VelocityHandler;
 import ste.web.beanshell.jetty.VelocityHandler;
 

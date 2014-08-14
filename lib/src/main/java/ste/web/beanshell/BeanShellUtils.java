@@ -33,12 +33,21 @@ import java.util.Enumeration;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import static ste.web.beanshell.Constants.*;
+import ste.web.http.BasicHttpConnection;
+import ste.web.http.BasicHttpRequest;
+import ste.web.http.HttpSessionContext;
+import ste.web.http.QueryString;
 
 /**
  *
@@ -91,6 +100,45 @@ public class BeanShellUtils {
         }
     }
 
+    public static void setup(final Interpreter        interpreter ,
+                             final BasicHttpRequest   request     ,
+                             final HttpResponse       response    ,
+                             final HttpSessionContext context     )
+    throws EvalError, IOException {
+        //
+        // Set attributes as script variables
+        //
+        for (String key: context.keySet()) {
+            key = normalizeVariableName(key);
+            interpreter.set(key, context.getAttribute(key));
+        }
+        
+        //
+        // Set request parameters as script variables. Note that parameters
+        // override attributes
+        //
+        QueryString qs = request.getQueryString();
+        for (String name: qs.getNames()) {
+            name = normalizeVariableName(name);
+            interpreter.set(name, qs.getValues(name).get(0));
+        }
+        
+        BasicHttpConnection connection = 
+            (BasicHttpConnection)context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
+
+        interpreter.set(VAR_REQUEST,  request                  );
+        interpreter.set(VAR_RESPONSE, response                 );
+        interpreter.set(VAR_SESSION,  context                  );
+        interpreter.set(VAR_OUT,      connection.getWriter()   );
+        interpreter.set(VAR_LOG,      log                      );
+        /**
+         * TODO: implement a way to get input and output streams and body
+        if (hasJSONBody(request)) {
+            interpreter.set(VAR_BODY, getJSONBody(request));
+        }
+        */
+    }
+    
     public static void setup(final Interpreter         interpreter,
                              final HttpServletRequest  request    ,
                              final HttpServletResponse response   )
@@ -100,7 +148,7 @@ public class BeanShellUtils {
         //
         String key;
         for (Enumeration e = request.getAttributeNames(); e.hasMoreElements();) {
-            key = ((String) e.nextElement()).replaceAll("\\.", "_");
+            key = normalizeVariableName((String)e.nextElement());
             interpreter.set(key, request.getAttribute(key));
         }
 
@@ -109,7 +157,7 @@ public class BeanShellUtils {
         // override attributes
         //
         for (Enumeration e = request.getParameterNames(); e.hasMoreElements();) {
-            key = ((String) e.nextElement()).replaceAll("\\.", "_");
+            key = normalizeVariableName((String)e.nextElement());
             interpreter.set(key, request.getParameter(key));
         }
 
@@ -128,19 +176,33 @@ public class BeanShellUtils {
      *
      * @param interpreter the beanshell interpreter
      * @param request the request
-     * @param response the response
      *
      */
     public static void cleanup(
         final Interpreter         interpreter,
-        final HttpServletRequest  request    ,
-        final HttpServletResponse response   ) throws EvalError
+        final HttpServletRequest  request    ) throws EvalError
     {
         Enumeration<String> params = request.getParameterNames();
         while (params.hasMoreElements()) {
             interpreter.unset(params.nextElement());
         }
     }
+    /**
+     * Cleans up request variables so that they won't be set in next invocations
+     *
+     * @param interpreter the beanshell interpreter
+     * @param request the request
+     *
+     */
+    public static void cleanup(
+        final Interpreter       interpreter,
+        final BasicHttpRequest  request    ) throws EvalError
+    {
+        for(String name: request.getQueryString().getNames()) {
+            interpreter.unset(name);
+        }
+    }
+    
 
     /**
      * Sets all variables available in the interpreter as request attributes.
@@ -167,6 +229,30 @@ public class BeanShellUtils {
     }
     
     /**
+     * Sets all variables available in the interpreter as request attributes.
+     *
+     * @param i the interpreter - NOT NULL
+     * @param r - the request - NOT NULL
+     *
+     * @throws EvalError
+     */
+    public static void setVariablesAttributes(final Interpreter i, final HttpContext c)
+    throws EvalError {
+        if (i == null) {
+            throw new IllegalArgumentException("interpreter cannot be null");
+        }
+
+        if (c == null) {
+            throw new IllegalArgumentException("context cannot be null");
+        }
+
+        String[] vars = (String[])i.get("this.variables");
+        for(String var: vars) {
+            c.setAttribute(var, i.get(var));
+        }
+    }
+    
+    /**
      * Returns true if the request content is supposed to contain a json object
      * as per the specified content type
      * 
@@ -180,6 +266,25 @@ public class BeanShellUtils {
             return false;
         }
         
+        return CONTENT_TYPE_JSON.equals(contentType)
+            || contentType.startsWith(CONTENT_TYPE_JSON + ";");
+    }
+    
+    /**
+     * Returns true if the request content is supposed to contain a json object
+     * as per the specified content type
+     * 
+     * @param request the request
+     * 
+     * @return true if the content type is "application/json", false otherwise
+     */
+    public static boolean hasJSONBody(BasicHttpRequest request) {
+        Header[] headers = request.getHeaders(HTTP.CONTENT_TYPE);
+        if ((headers == null) || (headers.length == 0)) {
+            return false;
+        }
+        
+        String contentType = headers[0].getValue();
         return CONTENT_TYPE_JSON.equals(contentType)
             || contentType.startsWith(CONTENT_TYPE_JSON + ";");
     }
@@ -208,5 +313,9 @@ public class BeanShellUtils {
         }
         
         return o;
+    }
+    
+    private static String normalizeVariableName(String name) {
+        return name.replaceAll("\\.", "_");
     }
 }
