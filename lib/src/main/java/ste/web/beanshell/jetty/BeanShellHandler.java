@@ -136,7 +136,7 @@ public class BeanShellHandler extends AbstractHandler {
                 log.fine("view: " + view);
             }
 
-            BeanShellUtils.cleanup(bsh, hrequest, hresponse);
+            BeanShellUtils.cleanup(bsh, hrequest);
             BeanShellUtils.setVariablesAttributes(bsh, request);
         } catch (FileNotFoundException e) {
             hresponse.sendError(HttpStatus.NOT_FOUND_404, "Script " + scriptFile + " not found.");

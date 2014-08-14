@@ -31,72 +31,65 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
+import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpCoreContext;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
-import org.eclipse.jetty.http.HttpURI;
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import static ste.web.beanshell.BeanShellUtils.CONTENT_TYPE_JSON;
 
-import static ste.web.beanshell.Constants.*;
 import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_REQ_ATTR_NAME1;
 import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_URI_PARAMETERS;
 import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_VALUE1;
 import ste.web.http.BasicHttpConnection;
-import ste.web.http.BasicHttpRequest;
 import ste.web.http.HttpSessionContext;
+import ste.web.http.QueryString;
 
-import ste.xtest.jetty.TestRequest;
-import ste.xtest.jetty.TestResponse;
-import ste.xtest.jetty.TestSession;
 import ste.xtest.net.TestSocket;
 
 /**
  * We add some basic tests since the methods are mostly covered by the client
  * classes' tests.
- * 
- * TODO: handle JSON errors when content is JSON
  *
  * @author ste
  */
 public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
+    
+    private static final BasicHttpResponse RESPONSE_OK = 
+        new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
 
     /**
      * Test of setup method, of class BeanShellUtils.
      */
     @Test
     public void setup() throws Exception {
-        BasicHttpRequest request = new BasicHttpRequest(TEST_URI_PARAMETERS);
-        BasicHttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        BasicHttpRequest request = new BasicHttpRequest("get", TEST_URI_PARAMETERS);
         HttpSessionContext context = new HttpSessionContext();
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
         context.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
 
         Interpreter i = new Interpreter();
-        BeanShellUtils.setup(i, request, response, context);
+        BeanShellUtils.setup(i, request, RESPONSE_OK, context);
         
         Map<String, List<String>> attributes = new HashMap<>();
         attributes.put(TEST_REQ_ATTR_NAME1, Arrays.asList(TEST_VALUE1));
         
-        checkSetup(i, request.getQueryString().getMap(), attributes);
+        checkSetup(i, QueryString.parse(request.getRequestLine().getUri()).getMap(), attributes);
     }
 
     @Test
     public void cleanup() throws Exception {
-        BasicHttpRequest request = new BasicHttpRequest(TEST_URI_PARAMETERS);
-        BasicHttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        BasicHttpRequest request = new BasicHttpRequest("get", TEST_URI_PARAMETERS);
         HttpSessionContext context = new HttpSessionContext();
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
         context.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
 
         Interpreter i = new Interpreter();
-        BeanShellUtils.setup(i, request, response, context);
+        BeanShellUtils.setup(i, request, RESPONSE_OK, context);
         BeanShellUtils.cleanup(i, request);
 
         //
@@ -104,7 +97,7 @@ public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
         // parameters are not valid variable any more so to avoid that next
         // invocations will inherit them
         //
-        checkCleanup(i, request.getQueryString().getNames());
+        checkCleanup(i, QueryString.parse(request.getRequestLine().getUri()).getNames());
     }
 
     @Test
@@ -147,20 +140,19 @@ public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
                                                 // does not always return
                                                 // the same
     }
-    /*
+
     @Test
     public void bodyAsNotSpecifiedType() throws Exception {
         BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("get", TEST_URI_PARAMETERS);
-        BasicHttpContext context = new BasicHttpContext();
-        context.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
+        HttpSessionContext context = new HttpSessionContext();
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
         request.setEntity(new StringEntity("one=1&two=2"));
 
         Interpreter i = new Interpreter();
-        BeanShellUtils.setup(i, request, new TestResponse());
+        BeanShellUtils.setup(i, request, RESPONSE_OK, context);
         
-        Object o = i.get(VAR_BODY);
-        then(o).isNull();
-    }*/
+        checkBodyAsNotSpecifiedType(i);
+    }
     
     @Test
     public void bodyAsJSONObject() throws Exception {
@@ -169,99 +161,84 @@ public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
         final String TEST_VALUE1 = "a first label";
         final String TEST_VALUE2 = "a second label";
         
-        TestRequest request = new TestRequest();
-        request.setUri(new HttpURI(TEST_URI_PARAMETERS));
-        request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
-        request.setSession(new TestSession());
-        request.setContentType("application/json");
-        request.setContent(String.format("{%s:'%s'}", TEST_LABEL1, TEST_VALUE1));
+        BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("get", TEST_URI_PARAMETERS);
+        HttpSessionContext context = new HttpSessionContext();
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
+        request.addHeader(HTTP.CONTENT_TYPE, CONTENT_TYPE_JSON);
+        request.setEntity(
+            new StringEntity(
+                String.format(
+                    "{%s:'%s'}", 
+                    TEST_LABEL1, TEST_VALUE1
+                )
+            )
+        );
 
         Interpreter i = new Interpreter();
-        BeanShellUtils.setup(i, request, new TestResponse());
+        BeanShellUtils.setup(i, request, RESPONSE_OK, context);
         
-        Object o = i.get(VAR_BODY);
-        then(o).isNotNull().isInstanceOf(JSONObject.class);
-        then(((JSONObject)o).getString(TEST_LABEL1)).isEqualTo(TEST_VALUE1);
+        checkJSONObject(i, TEST_LABEL1, TEST_VALUE1);
         
-        request.setContent(
-            String.format(
-                "[{%s:'%s'}, {%s:'%s'}]",  
-                TEST_LABEL1, TEST_VALUE1,
-                TEST_LABEL2, TEST_VALUE2
+        request.setEntity(
+            new StringEntity(
+                String.format(
+                    "[{%s:'%s'}, {%s:'%s'}]",  
+                    TEST_LABEL1, TEST_VALUE1,
+                    TEST_LABEL2, TEST_VALUE2
+                )
             )
         );
         
-        BeanShellUtils.setup(i, request, new TestResponse());
+        BeanShellUtils.setup(i, request, RESPONSE_OK, context);
         
-        o = i.get(VAR_BODY);
-        then(o).isNotNull().isInstanceOf(JSONArray.class);
-        JSONArray a = (JSONArray)o;
-        then(a.length()).isEqualTo(2); 
-        o = a.getJSONObject(0);
-        then(((JSONObject)o).getString(TEST_LABEL1)).isEqualTo(TEST_VALUE1);
-        o = a.getJSONObject(1);
-        then(((JSONObject)o).getString(TEST_LABEL2)).isEqualTo(TEST_VALUE2);
+        checkJSONArray(
+            i, 
+            new String[] {TEST_LABEL1, TEST_LABEL2},
+            new String[] {TEST_VALUE1, TEST_VALUE2}
+        );
     }
     
     @Test
     public void bodyAsJSONObjectWithCharset() throws Exception {
         final String TEST_LABEL1 = "label1";
-        final String TEST_LABEL2 = "label2";
         final String TEST_VALUE1 = "a first label";
-        final String TEST_VALUE2 = "a second label";
         
-        TestRequest request = new TestRequest();
-        request.setUri(new HttpURI(TEST_URI_PARAMETERS));
-        request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
-        request.setSession(new TestSession());
-        request.setContentType("application/json;charset=utf-8");
-        request.setContent(String.format("{%s:'%s'}", TEST_LABEL1, TEST_VALUE1));
-
+        BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("get", TEST_URI_PARAMETERS);
+        HttpSessionContext context = new HttpSessionContext();
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
+        request.addHeader(HTTP.CONTENT_TYPE, CONTENT_TYPE_JSON + ";charset=utf-8");
+        request.setEntity(
+            new StringEntity(
+                String.format(
+                    "{%s:'%s'}", 
+                    TEST_LABEL1, TEST_VALUE1
+                )
+            )
+        );
+        
         Interpreter i = new Interpreter();
-        BeanShellUtils.setup(i, request, new TestResponse());
+        BeanShellUtils.setup(i, request, RESPONSE_OK, context);
         
-        Object o = i.get(VAR_BODY);
-        then(o).isNotNull().isInstanceOf(JSONObject.class);
-        then(((JSONObject)o).getString(TEST_LABEL1)).isEqualTo(TEST_VALUE1);
+        checkJSONObject(i, TEST_LABEL1, TEST_VALUE1);
     }
     
     @Test
     public void bodyAsCorruptedJSONObject() throws Exception {
-        TestRequest request = new TestRequest();
-        request.setUri(new HttpURI(TEST_URI_PARAMETERS));
-        request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
-        request.setSession(new TestSession());
-        request.setContentType("application/json");
-        
-        final String[] ERRORS = {
-            "", "   ", "\t ",
-            "a string", "{ 'label': value", "'label': 'value'", "[{} {}]",
-            "[{} {}]", "['uno', 'due'", "'tre', 'quattro']"
-        };
+        BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("get", TEST_URI_PARAMETERS);
+        HttpSessionContext context = new HttpSessionContext();
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
+        request.addHeader(HTTP.CONTENT_TYPE, CONTENT_TYPE_JSON);
         
         Interpreter i = new Interpreter();
-        for (String e: ERRORS) {
-            request.setContent(e);
+        for (String s: TEST_JSON_ERRORS) {
+            request.setEntity(new StringEntity(s));
             try {
-                BeanShellUtils.setup(i, request, new TestResponse());
-                fail("JSONException not thrown for <" + e + ">");
+                BeanShellUtils.setup(i, request, RESPONSE_OK, context);
+                fail("JSONException not thrown for <" + s + ">");
             } catch (IOException x) {
                 then(x.getCause()).isNotNull().isInstanceOf(JSONException.class);
             }
         }
-    }
-    
-    @Test
-    public void hasJSONObjectApache() throws Exception {
-        BasicHttpRequest r = new BasicHttpRequest("index.html");
-        then(BeanShellUtils.hasJSONBody(r)).isFalse();
-        
-        r.addHeader(HTTP.CONTENT_TYPE, "text/plain");
-        then(BeanShellUtils.hasJSONBody(r)).isFalse();
-        
-        r.removeHeaders(HTTP.CONTENT_TYPE);
-        r.addHeader(HTTP.CONTENT_TYPE, CONTENT_TYPE_JSON);
-        then(BeanShellUtils.hasJSONBody(r)).isTrue();
     }
     
     // --------------------------------------------------------- private methods

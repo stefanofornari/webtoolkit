@@ -21,43 +21,36 @@
  */
 package ste.web.beanshell;
 
+import bsh.EvalError;
 import bsh.Interpreter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.http.protocol.HTTP;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
-import org.eclipse.jetty.http.HttpURI;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
-import static ste.web.beanshell.BeanShellUtils.CONTENT_TYPE_JSON;
 
 import static ste.web.beanshell.Constants.*;
-import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_REQ_ATTR_NAME1;
-import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_URI_PARAMETERS;
-import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_VALUE1;
-import ste.web.http.BasicHttpRequest;
-
-import ste.xtest.jetty.TestRequest;
-import ste.xtest.jetty.TestResponse;
-import ste.xtest.jetty.TestSession;
 
 /**
  * We add some basic tests since the methods are mostly covered by the client
  * classes' tests. Note that specific behaviour for different types of containers
  * are specified in dedicated bug free classes.
- * 
- * TODO: handle JSON errors when content is JSON
  *
  * @author ste
  */
 public class BugFreeBeanShellUtils {
+    
+    protected static final String[] TEST_JSON_ERRORS = {
+            "", "   ", "\t ",
+            "a string", "{ 'label': value", "'label': 'value'", "[{} {}]",
+            "[{} {}]", "['uno', 'due'", "'tre', 'quattro']"
+        };
 
     @Test
     public void getScriptNull() throws Exception {
@@ -148,106 +141,23 @@ public class BugFreeBeanShellUtils {
     protected void checkBodyAsNotSpecifiedType(final Interpreter i) throws Exception {
         then(i.get(VAR_BODY)).isNull();
     }
-        
-    @Test
-    public void bodyAsJSONObject() throws Exception {
-        final String TEST_LABEL1 = "label1";
-        final String TEST_LABEL2 = "label2";
-        final String TEST_VALUE1 = "a first label";
-        final String TEST_VALUE2 = "a second label";
-        
-        TestRequest request = new TestRequest();
-        request.setUri(new HttpURI(TEST_URI_PARAMETERS));
-        request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
-        request.setSession(new TestSession());
-        request.setContentType("application/json");
-        request.setContent(String.format("{%s:'%s'}", TEST_LABEL1, TEST_VALUE1));
-
-        Interpreter i = new Interpreter();
-        BeanShellUtils.setup(i, request, new TestResponse());
-        
+    
+    protected void checkJSONObject(Interpreter i, final String label, final String value) 
+    throws JSONException, EvalError {
         Object o = i.get(VAR_BODY);
         then(o).isNotNull().isInstanceOf(JSONObject.class);
-        then(((JSONObject)o).getString(TEST_LABEL1)).isEqualTo(TEST_VALUE1);
-        
-        request.setContent(
-            String.format(
-                "[{%s:'%s'}, {%s:'%s'}]",  
-                TEST_LABEL1, TEST_VALUE1,
-                TEST_LABEL2, TEST_VALUE2
-            )
-        );
-        
-        BeanShellUtils.setup(i, request, new TestResponse());
-        
-        o = i.get(VAR_BODY);
+        then(((JSONObject)o).getString(label)).isEqualTo(value);
+    }
+    
+    protected void checkJSONArray(Interpreter i, final String[] labels, final String[] values) 
+    throws JSONException, EvalError {
+        Object o = i.get(VAR_BODY);
         then(o).isNotNull().isInstanceOf(JSONArray.class);
         JSONArray a = (JSONArray)o;
-        then(a.length()).isEqualTo(2); 
-        o = a.getJSONObject(0);
-        then(((JSONObject)o).getString(TEST_LABEL1)).isEqualTo(TEST_VALUE1);
-        o = a.getJSONObject(1);
-        then(((JSONObject)o).getString(TEST_LABEL2)).isEqualTo(TEST_VALUE2);
-    }
-    
-    @Test
-    public void bodyAsJSONObjectWithCharset() throws Exception {
-        final String TEST_LABEL1 = "label1";
-        final String TEST_LABEL2 = "label2";
-        final String TEST_VALUE1 = "a first label";
-        final String TEST_VALUE2 = "a second label";
-        
-        TestRequest request = new TestRequest();
-        request.setUri(new HttpURI(TEST_URI_PARAMETERS));
-        request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
-        request.setSession(new TestSession());
-        request.setContentType("application/json;charset=utf-8");
-        request.setContent(String.format("{%s:'%s'}", TEST_LABEL1, TEST_VALUE1));
-
-        Interpreter i = new Interpreter();
-        BeanShellUtils.setup(i, request, new TestResponse());
-        
-        Object o = i.get(VAR_BODY);
-        then(o).isNotNull().isInstanceOf(JSONObject.class);
-        then(((JSONObject)o).getString(TEST_LABEL1)).isEqualTo(TEST_VALUE1);
-    }
-    
-    @Test
-    public void bodyAsCorruptedJSONObject() throws Exception {
-        TestRequest request = new TestRequest();
-        request.setUri(new HttpURI(TEST_URI_PARAMETERS));
-        request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
-        request.setSession(new TestSession());
-        request.setContentType("application/json");
-        
-        final String[] ERRORS = {
-            "", "   ", "\t ",
-            "a string", "{ 'label': value", "'label': 'value'", "[{} {}]",
-            "[{} {}]", "['uno', 'due'", "'tre', 'quattro']"
-        };
-        
-        Interpreter i = new Interpreter();
-        for (String e: ERRORS) {
-            request.setContent(e);
-            try {
-                BeanShellUtils.setup(i, request, new TestResponse());
-                fail("JSONException not thrown for <" + e + ">");
-            } catch (IOException x) {
-                then(x.getCause()).isNotNull().isInstanceOf(JSONException.class);
-            }
+        then(a.length()).isEqualTo(labels.length); 
+        for (int j=0; j<labels.length; ++j) {
+            o = a.getJSONObject(j);
+            then(((JSONObject)o).getString(labels[j])).isEqualTo(values[j]);
         }
-    }
-    
-    @Test
-    public void hasJSONObjectApache() throws Exception {
-        BasicHttpRequest r = new BasicHttpRequest("index.html");
-        then(BeanShellUtils.hasJSONBody(r)).isFalse();
-        
-        r.addHeader(HTTP.CONTENT_TYPE, "text/plain");
-        then(BeanShellUtils.hasJSONBody(r)).isFalse();
-        
-        r.removeHeaders(HTTP.CONTENT_TYPE);
-        r.addHeader(HTTP.CONTENT_TYPE, CONTENT_TYPE_JSON);
-        then(BeanShellUtils.hasJSONBody(r)).isTrue();
     }
 }

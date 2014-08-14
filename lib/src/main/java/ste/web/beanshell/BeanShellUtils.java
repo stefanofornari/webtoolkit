@@ -28,13 +28,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Enumeration;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.http.Header;
+import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
@@ -45,7 +49,6 @@ import org.json.JSONTokener;
 
 import static ste.web.beanshell.Constants.*;
 import ste.web.http.BasicHttpConnection;
-import ste.web.http.BasicHttpRequest;
 import ste.web.http.HttpSessionContext;
 import ste.web.http.QueryString;
 
@@ -117,7 +120,7 @@ public class BeanShellUtils {
         // Set request parameters as script variables. Note that parameters
         // override attributes
         //
-        QueryString qs = request.getQueryString();
+        QueryString qs = QueryString.parse(request.getRequestLine().getUri());
         for (String name: qs.getNames()) {
             name = normalizeVariableName(name);
             interpreter.set(name, qs.getValues(name).get(0));
@@ -131,12 +134,9 @@ public class BeanShellUtils {
         interpreter.set(VAR_SESSION,  context                  );
         interpreter.set(VAR_OUT,      connection.getWriter()   );
         interpreter.set(VAR_LOG,      log                      );
-        /**
-         * TODO: implement a way to get input and output streams and body
-        if (hasJSONBody(request)) {
-            interpreter.set(VAR_BODY, getJSONBody(request));
+        if (hasJSONBody(request) && (request instanceof HttpEntityEnclosingRequest)) {
+            interpreter.set(VAR_BODY, getJSONBody(getEntityInputStream(request)));
         }
-        */
     }
     
     public static void setup(final Interpreter         interpreter,
@@ -167,7 +167,7 @@ public class BeanShellUtils {
         interpreter.set(VAR_OUT,      response.getWriter()     );
         interpreter.set(VAR_LOG,      log                      );
         if (hasJSONBody(request)) {
-            interpreter.set(VAR_BODY, getJSONBody(request));
+            interpreter.set(VAR_BODY, getJSONBody(request.getInputStream()));
         }
     }
 
@@ -198,7 +198,7 @@ public class BeanShellUtils {
         final Interpreter       interpreter,
         final BasicHttpRequest  request    ) throws EvalError
     {
-        for(String name: request.getQueryString().getNames()) {
+        for(String name: QueryString.parse(request.getRequestLine().getUri()).getNames()) {
             interpreter.unset(name);
         }
     }
@@ -291,11 +291,10 @@ public class BeanShellUtils {
     
     // --------------------------------------------------------- private methods
     
-    private static Object getJSONBody(HttpServletRequest request) 
-    throws IOException {
+    private static Object getJSONBody(final InputStream in) throws IOException {
         Object o = null;
         try {
-            BufferedInputStream is = new BufferedInputStream(request.getInputStream());
+            BufferedInputStream is = new BufferedInputStream(in);
             is.mark(0);
             if (is.read() == '{') {
                 is.reset();
@@ -317,5 +316,9 @@ public class BeanShellUtils {
     
     private static String normalizeVariableName(String name) {
         return name.replaceAll("\\.", "_");
+    }
+    
+    private static InputStream getEntityInputStream(HttpRequest r) throws IOException {
+        return ((HttpEntityEnclosingRequest)r).getEntity().getContent();
     }
 }

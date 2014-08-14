@@ -1,28 +1,11 @@
 package ste.web.beanshell.jetty;
 
-import java.io.File;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletException;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.resource.Resource;
-import ste.web.beanshell.BeanShellServlet;
-import ste.web.beanshell.jetty.BeanShellHandler;
-import ste.web.beanshell.jetty.BeanShellHandler;
-import ste.web.beanshell.jetty.BeanShellHandler;
-import ste.web.beanshell.jetty.VelocityHandler;
-import ste.web.beanshell.jetty.VelocityHandler;
-import ste.web.beanshell.jetty.VelocityHandler;
 
 import static ste.web.beanshell.Constants.*;
 
