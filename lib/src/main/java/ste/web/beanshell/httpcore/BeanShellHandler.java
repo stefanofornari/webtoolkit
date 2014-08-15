@@ -28,19 +28,18 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.ServletException;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
-import org.apache.http.ProtocolVersion;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import ste.web.beanshell.BeanShellUtils;
 
 
 import static ste.web.beanshell.Constants.*;
+import ste.web.http.HttpSessionContext;
 
 /**
  *
@@ -104,8 +103,6 @@ public class BeanShellHandler implements HttpRequestHandler {
             return;
         }
 
-        String root = (String)context.getAttribute(ATTR_APP_ROOT);
-
         if (controllersFolder == null) {
             controllersFolder = DEFAULT_CONTROLLERS_PREFIX;
         } else {
@@ -117,7 +114,7 @@ public class BeanShellHandler implements HttpRequestHandler {
             }
         }
 
-        File scriptFile = new File(root, uri);
+        File scriptFile = new File(appsRoot, uri);
         String controllerPath = scriptFile.getParent() + getControllersFolder();
         scriptFile = new File(controllerPath, scriptFile.getName());
 
@@ -126,7 +123,7 @@ public class BeanShellHandler implements HttpRequestHandler {
         }
 
         try {
-            // TODOD BeanShellUtils.setup(bsh, request, response);
+            BeanShellUtils.setup(bsh, request, response, (HttpSessionContext)context);
             bsh.set(VAR_SOURCE, scriptFile.getAbsolutePath());
             bsh.eval(BeanShellUtils.getScript(scriptFile));
 
@@ -139,8 +136,8 @@ public class BeanShellHandler implements HttpRequestHandler {
                 log.fine("view: " + view);
             }
 
-            // TODO BeanShellUtils.cleanup(bsh, request, response);
-            // TODO BeanShellUtils.setVariablesAttributes(bsh, request);
+            BeanShellUtils.cleanup(bsh, request);
+            BeanShellUtils.setVariablesAttributes(bsh, context);
         } catch (FileNotFoundException e) {
             response.setStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_FOUND, "Script " + scriptFile + " not found.");
         } catch (EvalError x) {

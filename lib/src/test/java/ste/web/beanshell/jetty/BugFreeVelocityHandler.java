@@ -31,6 +31,7 @@ import org.eclipse.jetty.util.MultiMap;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI04;
 
 import static ste.web.beanshell.Constants.*;
 import ste.xtest.jetty.TestRequest;
@@ -135,7 +136,7 @@ public class BugFreeVelocityHandler {
         handler.setViewsFolder("/views");
 
         request.setAttribute(ATTR_VIEW, TEST_VIEW5);
-        handler.handle(BugFreeBeanShellHandler.TEST_URI04, request, request, response);
+        handler.handle(TEST_URI04, request, request, response);
         assertEquals(HttpStatus.OK_200, response.getStatus());
         assertTrue(request.isHandled());
     }

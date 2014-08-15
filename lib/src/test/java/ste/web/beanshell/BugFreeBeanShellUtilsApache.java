@@ -23,6 +23,7 @@ package ste.web.beanshell;
 
 import bsh.Interpreter;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -42,9 +43,6 @@ import org.json.JSONException;
 import org.junit.Test;
 import static ste.web.beanshell.BeanShellUtils.CONTENT_TYPE_JSON;
 
-import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_REQ_ATTR_NAME1;
-import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_URI_PARAMETERS;
-import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_VALUE1;
 import ste.web.http.BasicHttpConnection;
 import ste.web.http.HttpSessionContext;
 import ste.web.http.QueryString;
@@ -71,14 +69,19 @@ public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
         HttpSessionContext context = new HttpSessionContext();
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
         context.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
+        context.setAttribute(TEST_REQ_ATTR_NAME2, TEST_VALUE2);
+        context.setAttribute(TEST_REQ_ATTR_NAME3, TEST_VALUE3);
 
         Interpreter i = new Interpreter();
         BeanShellUtils.setup(i, request, RESPONSE_OK, context);
         
         Map<String, List<String>> attributes = new HashMap<>();
         attributes.put(TEST_REQ_ATTR_NAME1, Arrays.asList(TEST_VALUE1));
+        attributes.put(TEST_REQ_ATTR_NAME2, Arrays.asList(TEST_VALUE2));
+        attributes.put(TEST_REQ_ATTR_NAME3, Arrays.asList(TEST_VALUE3));
         
-        checkSetup(i, QueryString.parse(request.getRequestLine().getUri()).getMap(), attributes);
+        URI uri = new URI(request.getRequestLine().getUri());
+        checkSetup(i, QueryString.parse(uri).getMap(), attributes);
     }
 
     @Test

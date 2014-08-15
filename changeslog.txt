@@ -1,3 +1,7 @@
+2014015
+- renamed to webtoolkit, webtoolkitlib, webtoolkitwebapp
+- added support for apache httpcore
+
 20140421
 - released v1.3.1
 - updated dependency xtest:1.4.2

@@ -30,6 +30,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Enumeration;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -38,7 +40,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
@@ -104,26 +105,32 @@ public class BeanShellUtils {
     }
 
     public static void setup(final Interpreter        interpreter ,
-                             final BasicHttpRequest   request     ,
+                             final HttpRequest        request     ,
                              final HttpResponse       response    ,
                              final HttpSessionContext context     )
     throws EvalError, IOException {
         //
         // Set attributes as script variables
         //
-        for (String key: context.keySet()) {
-            key = normalizeVariableName(key);
-            interpreter.set(key, context.getAttribute(key));
+        for (String k: context.keySet()) {
+            String key = normalizeVariableName(k);
+            interpreter.set(key, context.getAttribute(k));
         }
         
         //
         // Set request parameters as script variables. Note that parameters
         // override attributes
         //
-        QueryString qs = QueryString.parse(request.getRequestLine().getUri());
-        for (String name: qs.getNames()) {
-            name = normalizeVariableName(name);
-            interpreter.set(name, qs.getValues(name).get(0));
+        try {
+            QueryString qs = QueryString.parse(new URI(request.getRequestLine().getUri()));
+            for (String n: qs.getNames()) {
+                String name = normalizeVariableName(n);
+                interpreter.set(name, qs.getValues(n).get(0));
+            }
+        } catch (URISyntaxException x) {
+            //
+            // nothing to do
+            //
         }
         
         BasicHttpConnection connection = 
@@ -146,10 +153,10 @@ public class BeanShellUtils {
         //
         // Set attributes as script variables
         //
-        String key;
+        String k, key;
         for (Enumeration e = request.getAttributeNames(); e.hasMoreElements();) {
-            key = normalizeVariableName((String)e.nextElement());
-            interpreter.set(key, request.getAttribute(key));
+            k = (String)e.nextElement(); key = normalizeVariableName(k);
+            interpreter.set(key, request.getAttribute(k));
         }
 
         //
@@ -157,8 +164,8 @@ public class BeanShellUtils {
         // override attributes
         //
         for (Enumeration e = request.getParameterNames(); e.hasMoreElements();) {
-            key = normalizeVariableName((String)e.nextElement());
-            interpreter.set(key, request.getParameter(key));
+            k = (String)e.nextElement(); key = normalizeVariableName(k);
+            interpreter.set(key, request.getParameter(k));
         }
 
         interpreter.set(VAR_REQUEST,  request                  );
@@ -195,11 +202,18 @@ public class BeanShellUtils {
      *
      */
     public static void cleanup(
-        final Interpreter       interpreter,
-        final BasicHttpRequest  request    ) throws EvalError
-    {
-        for(String name: QueryString.parse(request.getRequestLine().getUri()).getNames()) {
-            interpreter.unset(name);
+        final Interpreter interpreter,
+        final HttpRequest request    
+    ) throws EvalError {
+        try {
+            URI uri = new URI(request.getRequestLine().getUri());
+            for(String name: QueryString.parse(uri).getNames()) {
+                interpreter.unset(name);
+            }
+        } catch (URISyntaxException x) {
+            //
+            // nothing to do
+            //
         }
     }
     
@@ -232,7 +246,7 @@ public class BeanShellUtils {
      * Sets all variables available in the interpreter as request attributes.
      *
      * @param i the interpreter - NOT NULL
-     * @param r - the request - NOT NULL
+     * @param c the request context - NOT NULL
      *
      * @throws EvalError
      */
@@ -278,7 +292,7 @@ public class BeanShellUtils {
      * 
      * @return true if the content type is "application/json", false otherwise
      */
-    public static boolean hasJSONBody(BasicHttpRequest request) {
+    public static boolean hasJSONBody(HttpRequest request) {
         Header[] headers = request.getHeaders(HTTP.CONTENT_TYPE);
         if ((headers == null) || (headers.length == 0)) {
             return false;
@@ -287,6 +301,20 @@ public class BeanShellUtils {
         String contentType = headers[0].getValue();
         return CONTENT_TYPE_JSON.equals(contentType)
             || contentType.startsWith(CONTENT_TYPE_JSON + ";");
+    }
+    
+    /**
+     * Replaces '.' with "_".
+     * 
+     * @param name the name to normalize - NOT NULL
+     * 
+     * @return the normalized version of the name
+     */
+    public static String normalizeVariableName(final String name) {
+        if (name == null) {
+            throw new IllegalArgumentException("name cannot be null");
+        }
+        return name.replaceAll("\\.", "_");
     }
     
     // --------------------------------------------------------- private methods
@@ -312,10 +340,6 @@ public class BeanShellUtils {
         }
         
         return o;
-    }
-    
-    private static String normalizeVariableName(String name) {
-        return name.replaceAll("\\.", "_");
     }
     
     private static InputStream getEntityInputStream(HttpRequest r) throws IOException {

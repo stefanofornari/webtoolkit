@@ -21,13 +21,50 @@
  */
 package ste.web.beanshell.httpcore;
 
+import bsh.EvalError;
+import bsh.Interpreter;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import org.apache.http.HttpException;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
-import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpCoreContext;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.Before;
+import ste.web.beanshell.BeanShellUtils;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_REQ_ATTR_NAME1;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_REQ_ATTR_NAME2;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_REQ_ATTR_NAME3;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI01;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI02;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI03;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI04;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI05;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI06;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI07;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI09;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI10;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI_PARAMETERS;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_VALUE1;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_VALUE2;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_VALUE3;
+import static ste.web.beanshell.Constants.ATTR_VIEW;
+import static ste.web.beanshell.Constants.VAR_LOG;
+import static ste.web.beanshell.Constants.VAR_OUT;
+import static ste.web.beanshell.Constants.VAR_REQUEST;
+import static ste.web.beanshell.Constants.VAR_RESPONSE;
+import static ste.web.beanshell.Constants.VAR_SESSION;
+import static ste.web.beanshell.Constants.VAR_SOURCE;
+import ste.web.http.BasicHttpConnection;
+import ste.web.http.HttpSessionContext;
+import ste.web.http.QueryString;
+import ste.xtest.net.TestSocket;
 
 
 /**
@@ -35,48 +72,15 @@ import org.junit.Before;
  * @author ste
  */
 public class BugFreeBeanShellHandler {
+    
+    private static final String GET = "GET";
+    private static final String ROOT = "src/test/resources";
 
-    public static final String TEST_URL_PARAM1 = "p_one";
-    public static final String TEST_URL_PARAM2 = "p_two";
-    public static final String TEST_URL_PARAM3 = "p_three";
 
-    public static final String TEST_REQ_ATTR_NAME1 = "a_one";
-    public static final String TEST_REQ_ATTR_NAME2 = "a_two";
-    public static final String TEST_REQ_ATTR_NAME3 = "a_three";
-
-    public static final String TEST_VALUE1 = "uno";
-    public static final String TEST_VALUE2 = "due";
-    public static final String TEST_VALUE3 = "tre";
-
-    public static final String TEST_URI01 = "/firstlevelscript.bsh";
-    public static final String TEST_URI02 = "/first/secondlevelscript.bsh";
-    public static final String TEST_URI03 = "/firstlevelcontroller.bsh";
-    public static final String TEST_URI04 = "/first/secondlevelcontroller.bsh";
-    public static final String TEST_URI05 = "/notexisting.bsh";
-    public static final String TEST_URI06 = "/withevalerror.bsh";
-    public static final String TEST_URI07 = "/withtargeterror.bsh";
-    public static final String TEST_URI08 = "/nobsh";
-    public static final String TEST_URI09 = "/parameters.bsh";
-    public static final String TEST_URI10 = "/missingview.bsh";
-
-    public static final String TEST_URI_PARAMETERS = "/some/parameters?"
-                                         + TEST_URL_PARAM1
-                                         + "="
-                                         + TEST_VALUE1
-                                         + "&"
-                                         + TEST_URL_PARAM2
-                                         + "="
-                                         + TEST_VALUE2
-                                         + "&"
-                                         + TEST_URL_PARAM3
-                                         + "="
-                                         + TEST_VALUE3
-                                         ;
-
-    protected TestRequest request;
-    protected TestResponse response;
+    protected BasicHttpRequest request;
+    protected BasicHttpResponse response;
     protected BeanShellHandler handler;
-    protected BasicHttpContext context;
+    protected HttpSessionContext context;
 
     public BugFreeBeanShellHandler() {
         request = null;
@@ -86,163 +90,146 @@ public class BugFreeBeanShellHandler {
 
     @Before
     public void setUp() throws Exception {
-        request = new TestRequest("GET", TEST_URI_PARAMETERS);
-        context = new BasicHttpContext();
+        request = new BasicHttpRequest("GET", TEST_URI_PARAMETERS);
+        context = new HttpSessionContext();
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
         context.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
         context.setAttribute(TEST_REQ_ATTR_NAME2, TEST_VALUE2);
         context.setAttribute(TEST_REQ_ATTR_NAME3, TEST_VALUE3);
-        response = new TestResponse(
+        response = new BasicHttpResponse(
             new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK")
         );
-        handler = new BeanShellHandler();
+        handler = new BeanShellHandler(new File(ROOT).getAbsolutePath());
     }
 
     @Test
     public void interpreterSetUp() throws Exception {
-        assertNotNull(handler.getInterpreter());
-        assertNull(new BeanShellHandler().getInterpreter());
+        then(new BeanShellHandler().getInterpreter()).isNotNull();
     }
-/*
+
     @Test
     public void execScriptDefaultDirs() throws Exception {
-        handler.handle(TEST_URI01, request, request, response);
-        assertFalse(request.isHandled());
-        assertNotNull(handler.getInterpreter().get("first"));
+        handler.handle(get(TEST_URI01), response, context);
+        then(handler.getInterpreter().get("first")).isNotNull();
 
-        handler.handle(TEST_URI02, request, request, response);
-        assertNotNull(handler.getInterpreter().get("second"));
-        assertFalse(request.isHandled());
+        handler.handle(get(TEST_URI02), response, context);
+        then(handler.getInterpreter().get("second")).isNotNull();
     }
 
     @Test
     public void execScriptNonDefaultDirs() throws Exception {
         handler.setControllersFolder("controllers");
 
-        handler.handle(TEST_URI03, request, request, response);
-        assertNotNull(handler.getInterpreter().get("firstcontroller"));
+        handler.handle(get(TEST_URI03), response, context);
+        then(handler.getInterpreter().get("firstcontroller")).isNotNull();
 
-        handler.handle(TEST_URI04, request, request, response);
-        assertNotNull(handler.getInterpreter().get("secondcontroller"));
+        handler.handle(get(TEST_URI04), response, context);
+        then(handler.getInterpreter().get("secondcontroller")).isNotNull();
     }
 
     @Test
     public void scriptNotFound() throws Exception {
-        handler.handle(TEST_URI05, request, request, response);
-        assertEquals(HttpStatus.NOT_FOUND_404, response.getStatus());
-        assertTrue(response.getStatusMessage().indexOf(TEST_URI05)>=0);
+        handler.handle(get(TEST_URI05), response, context);
+        then(HttpStatus.SC_NOT_FOUND).isEqualTo(response.getStatusLine().getStatusCode());
+        then(response.getStatusLine().getReasonPhrase()).contains(TEST_URI05);
     }
 
     @Test
-    public void scriptError() {
+    public void scriptError() throws IOException {
         try {
-            handler.handle(TEST_URI06, request, request, response);
-            fail(TEST_URI06 + " error shall throw a ServletException");
-        } catch (ServletException e) {
-            //
-            // OK
-            //
-            assertTrue(e.getCause() instanceof EvalError);
-        } catch (Exception e) {
-            fail(TEST_URI06 + " error shall throw a ServletException instead of " + e);
+            handler.handle(get(TEST_URI06), response, context);
+            fail(TEST_URI06 + " error shall throw a HttpException");
+        } catch (HttpException x) {
+            then(x.getCause()).isInstanceOf(EvalError.class);
         }
 
         try {
-            handler.handle(TEST_URI07, request, request, response);
-            fail(TEST_URI07 + " error shall throw a ServletException");
-        } catch (ServletException e) {
+            handler.handle(get(TEST_URI07), response, context);
+            fail(TEST_URI07 + " error shall throw a HttpException");
+        } catch (HttpException x) {
             //
             // OK
             //
-            assertTrue(e.getCause() instanceof EvalError);
-        } catch (Exception e) {
-            fail(TEST_URI07 + " error shall throw a ServletException instead of " + e);
+            then(x.getCause()).isInstanceOf(EvalError.class);
+        } catch (Exception x) {
+            fail(TEST_URI07 + " error shall throw a HttpException instead of " + x);
         }
     }
 
+    /**
+     * TODO: Not doable with httpcore; do we need it?
+     * @throws Exception 
+     */
+    /*
     @Test
     public void execBshOnly() throws Exception {
-        handler.handle(TEST_URI08, request, request, response);
+        handler.handle(get(TEST_URI08), response, context);
         assertFalse(request.isHandled());
     }
-
+    */
+    
     @Test
     public void setMainVariables() throws Exception {
-        HttpSession session = new TestSession();
-
-        request.setSession(session);
-
-        handler.handle(TEST_URI01, request, request, response);
+        BasicHttpRequest request = get(TEST_URI01);
+        handler.handle(request, response, context);
 
         Interpreter i = handler.getInterpreter();
-        assertSame(i.get(VAR_REQUEST), request);
-        assertSame(i.get(VAR_RESPONSE), response);
-        assertSame(i.get(VAR_SESSION), session);
-        assertNotNull(i.get(VAR_LOG));
-        assertNotNull(i.get(VAR_OUT));
-        assertEquals(
-            new File((String)server.getAttribute(ATTR_APP_ROOT), TEST_URI01).getAbsolutePath(),
-            handler.getInterpreter().get(VAR_SOURCE)
-        );
+        then(i.get(VAR_REQUEST)).isSameAs(request);
+        then(i.get(VAR_RESPONSE)).isSameAs(response);
+        then(i.get(VAR_SESSION)).isSameAs(context);
+        then(i.get(VAR_LOG)).isNotNull();
+        then(i.get(VAR_OUT)).isNotNull();
+        then(new File(ROOT, TEST_URI01).getAbsolutePath())
+            .isEqualTo(handler.getInterpreter().get(VAR_SOURCE));
     }
 
     @Test
     public void returnView() throws Exception {
-        handler.handle(TEST_URI01, request, request, response);
+        handler.handle(get(TEST_URI01), response, context);
         Interpreter i = handler.getInterpreter();
-        assertEquals("main.v", i.get(ATTR_VIEW));
+        then(i.get(ATTR_VIEW)).isEqualTo("main.v");
     }
 
     @Test
     public void missingView() throws Exception {
         try {
-            handler.handle(TEST_URI10, request, request, response);
+            handler.handle(get(TEST_URI10), response, context);
             fail(TEST_URI06 + " error shall throw a ServletException");
-        } catch (ServletException e) {
-            assertTrue(e.getMessage().contains("view not defined"));
-        }
-    }
-
-    @Test
-    public void requestParameters() throws Exception {
-        handler.handle(TEST_URI09, request, request, response);
-        Interpreter i = handler.getInterpreter();
-
-        assertEquals(
-            String.format("%s,%s,%s", TEST_VALUE1, TEST_VALUE2, TEST_VALUE3),
-            i.get("parameters")
-        );
-
-        //
-        // We need to make sure that after the handling of the request,
-        // parameters are not valid variable any more so to avoid that next
-        // invocations will inherit them
-        //
-        Enumeration<String> params = request.getParameterNames();
-        while (params.hasMoreElements()) {
-            assertNull(i.get(params.nextElement()));
+        } catch (HttpException e) {
+            then(e.getMessage()).contains("view not defined");
         }
     }
 
     @Test
     public void requestAttributes() throws Exception {
-        handler.handle(TEST_URI01, request, request, response);
+        handler.handle(get(TEST_URI01), response, context);
         Interpreter i = handler.getInterpreter();
-        Enumeration<String> attrs = request.getAttributeNames();
-        while (attrs.hasMoreElements()) {
-            String attr = attrs.nextElement();
-            assertEquals(request.getAttribute(attr), i.get(attr));
+        for(String name: context.keySet()) {
+            System.out.println("key: " + name + ", value: " + context.getAttribute(name));
+            then(i.get(BeanShellUtils.normalizeVariableName(name))).isEqualTo(context.getAttribute(name));
         }
     }
 
     @Test
     public void variablesAttribute() throws Exception {
-        handler.handle(TEST_URI01, request, request, response);
+        handler.handle(get(TEST_URI01), response, context);
         Interpreter i = handler.getInterpreter();
-        assertTrue((Boolean)request.getAttribute("first"));
-        assertNull(request.getAttribute("something")); // just to make sure it
-                                                       // does not always return
-                                                       // the same
+        then((boolean)context.getAttribute("first")).isTrue();
+        then(context.getAttribute("something")).isNull(); // just to make sure it
+                                                          // does not always return
+                                                          // the same
     }
-*/
+
     // --------------------------------------------------------- Private methods
+    
+    private BasicHttpConnection getConnection() throws IOException {
+        BasicHttpConnection c = new BasicHttpConnection();
+        c.bind(new TestSocket());
+        
+        return c;
+    }
+    
+    private BasicHttpRequest get(final String uri) {
+        return new BasicHttpRequest(GET, uri);
+    }
 }

@@ -14,7 +14,7 @@
             <excludes>
                 <exclude>junit:junit</exclude>
                 <exclude>ste.test:xtest</exclude>
-                <exclude>ste.web:beanshellweb-webapp:war</exclude>
+                <exclude>ste.web:beanshellweb:war</exclude>
             </excludes>
         </dependencySet>
     </dependencySets>

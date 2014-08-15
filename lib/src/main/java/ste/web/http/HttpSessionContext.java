@@ -43,13 +43,4 @@ public class HttpSessionContext
     public Object removeAttribute(final String id) {
         return remove(id);
     }
-    
-    public HttpSession getSession() {
-        return session;
-    }
-    
-    public void setSession(final HttpSession session) {
-        this.session = session;
-    }
-    
 }

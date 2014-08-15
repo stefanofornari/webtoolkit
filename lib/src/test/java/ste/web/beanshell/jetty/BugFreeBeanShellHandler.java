@@ -35,6 +35,24 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import ste.web.beanshell.BeanShellUtils;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_REQ_ATTR_NAME1;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_REQ_ATTR_NAME2;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_REQ_ATTR_NAME3;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI01;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI02;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI03;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI04;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI05;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI06;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI07;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI08;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI09;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI10;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI_PARAMETERS;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_VALUE1;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_VALUE2;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_VALUE3;
 
 import static ste.web.beanshell.Constants.*;
 import ste.xtest.jetty.TestRequest;
@@ -46,43 +64,6 @@ import ste.xtest.jetty.TestSession;
  * @author ste
  */
 public class BugFreeBeanShellHandler {
-
-    public static final String TEST_URL_PARAM1 = "p_one";
-    public static final String TEST_URL_PARAM2 = "p_two";
-    public static final String TEST_URL_PARAM3 = "p_three";
-
-    public static final String TEST_REQ_ATTR_NAME1 = "a_one";
-    public static final String TEST_REQ_ATTR_NAME2 = "a_two";
-    public static final String TEST_REQ_ATTR_NAME3 = "a_three";
-
-    public static final String TEST_VALUE1 = "uno";
-    public static final String TEST_VALUE2 = "due";
-    public static final String TEST_VALUE3 = "tre";
-
-    public static final String TEST_URI01 = "/firstlevelscript.bsh";
-    public static final String TEST_URI02 = "/first/secondlevelscript.bsh";
-    public static final String TEST_URI03 = "/firstlevelcontroller.bsh";
-    public static final String TEST_URI04 = "/first/secondlevelcontroller.bsh";
-    public static final String TEST_URI05 = "/notexisting.bsh";
-    public static final String TEST_URI06 = "/withevalerror.bsh";
-    public static final String TEST_URI07 = "/withtargeterror.bsh";
-    public static final String TEST_URI08 = "/nobsh";
-    public static final String TEST_URI09 = "/parameters.bsh";
-    public static final String TEST_URI10 = "/missingview.bsh";
-
-    public static final String TEST_URI_PARAMETERS = "/some/parameters?"
-                                         + TEST_URL_PARAM1
-                                         + "="
-                                         + TEST_VALUE1
-                                         + "&"
-                                         + TEST_URL_PARAM2
-                                         + "="
-                                         + TEST_VALUE2
-                                         + "&"
-                                         + TEST_URL_PARAM3
-                                         + "="
-                                         + TEST_VALUE3
-                                         ;
 
     protected TestRequest request;
     protected TestResponse response;
@@ -245,7 +226,7 @@ public class BugFreeBeanShellHandler {
         Enumeration<String> attrs = request.getAttributeNames();
         while (attrs.hasMoreElements()) {
             String attr = attrs.nextElement();
-            assertEquals(request.getAttribute(attr), i.get(attr));
+            assertEquals(request.getAttribute(attr), i.get(BeanShellUtils.normalizeVariableName(attr)));
         }
     }
 

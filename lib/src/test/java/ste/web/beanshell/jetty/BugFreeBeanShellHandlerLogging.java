@@ -30,6 +30,9 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.BeforeClass;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI01;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI02;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI06;
 
 import static ste.web.beanshell.Constants.*;
 import ste.xtest.logging.ListLogHandler;

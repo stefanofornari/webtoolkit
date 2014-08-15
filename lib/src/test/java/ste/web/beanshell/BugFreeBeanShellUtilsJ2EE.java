@@ -34,10 +34,6 @@ import org.eclipse.jetty.http.HttpURI;
 import org.json.JSONException;
 import org.junit.Test;
 
-import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_REQ_ATTR_NAME1;
-import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_URI_PARAMETERS;
-import static ste.web.beanshell.jetty.BugFreeBeanShellHandler.TEST_VALUE1;
-
 import ste.xtest.jetty.TestRequest;
 import ste.xtest.jetty.TestResponse;
 import ste.xtest.jetty.TestSession;
@@ -59,6 +55,8 @@ public class BugFreeBeanShellUtilsJ2EE extends BugFreeBeanShellUtils {
         TestRequest request = new TestRequest();
         request.setUri(new HttpURI(TEST_URI_PARAMETERS));
         request.setAttribute(TEST_REQ_ATTR_NAME1, TEST_VALUE1);
+        request.setAttribute(TEST_REQ_ATTR_NAME2, TEST_VALUE2);
+        request.setAttribute(TEST_REQ_ATTR_NAME3, TEST_VALUE3);
         request.setSession(new TestSession());
         HttpServletResponse response = new TestResponse();
 
@@ -67,6 +65,8 @@ public class BugFreeBeanShellUtilsJ2EE extends BugFreeBeanShellUtils {
         
         Map<String, List<String>> attributes = new HashMap<>();
         attributes.put(TEST_REQ_ATTR_NAME1, Arrays.asList(TEST_VALUE1));
+        attributes.put(TEST_REQ_ATTR_NAME2, Arrays.asList(TEST_VALUE2));
+        attributes.put(TEST_REQ_ATTR_NAME3, Arrays.asList(TEST_VALUE3));
         
         //
         // We need to make sure that after the handling of the request,
