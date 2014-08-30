@@ -21,10 +21,16 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.protocol.HTTP;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.eclipse.jetty.http.HttpHeader;
 import org.junit.Test;
+import ste.web.beanshell.BeanShellUtils;
+import static ste.web.beanshell.BeanShellUtils.CONTENT_TYPE_JSON;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI_PARAMETERS;
 
 /**
  *
@@ -76,5 +82,20 @@ public class BugFreeHttpUtils {
                 then(x.getMessage()).contains("url can not be empty");
             }
         }
+    }
+    
+    @Test
+    public void hasJSONBody() throws Exception {
+        BasicHttpRequest request = new BasicHttpRequest("GET", TEST_URI_PARAMETERS);
+        then(HttpUtils.hasJSONBody(request)).isFalse();
+        
+        request.setHeader(HTTP.CONTENT_TYPE, "text/plain");
+        then(HttpUtils.hasJSONBody(request)).isFalse();
+        
+        request.setHeader(HTTP.CONTENT_TYPE, CONTENT_TYPE_JSON);
+        then(HttpUtils.hasJSONBody(request)).isTrue();
+        
+        request.setHeader(HTTP.CONTENT_TYPE, CONTENT_TYPE_JSON + "; cherset=UTF8");
+        then(HttpUtils.hasJSONBody(request)).isTrue();
     }
 }

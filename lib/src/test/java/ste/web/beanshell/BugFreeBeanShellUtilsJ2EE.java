@@ -33,6 +33,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 import org.eclipse.jetty.http.HttpURI;
 import org.json.JSONException;
 import org.junit.Test;
+import static ste.web.beanshell.BeanShellUtils.CONTENT_TYPE_JSON;
 
 import ste.xtest.jetty.TestRequest;
 import ste.xtest.jetty.TestResponse;
@@ -223,5 +224,22 @@ public class BugFreeBeanShellUtilsJ2EE extends BugFreeBeanShellUtils {
                 then(x.getCause()).isNotNull().isInstanceOf(JSONException.class);
             }
         }
+    }
+    
+    @Test
+    public void hasJSONBody() {
+        TestRequest request = new TestRequest();
+        request.setUri(new HttpURI(TEST_URI_PARAMETERS));
+        
+        then(BeanShellUtils.hasJSONBody(request)).isFalse();
+        
+        request.setContentType("text/plain");
+        then(BeanShellUtils.hasJSONBody(request)).isFalse();
+        
+        request.setContentType(CONTENT_TYPE_JSON);
+        then(BeanShellUtils.hasJSONBody(request)).isTrue();
+        
+        request.setContentType(CONTENT_TYPE_JSON + "; cherset=UTF8");
+        then(BeanShellUtils.hasJSONBody(request)).isTrue();
     }
 }

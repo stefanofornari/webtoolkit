@@ -19,6 +19,7 @@ import java.net.HttpCookie;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
+import static ste.xtest.Constants.BLANKS;
 
 /**
  *
@@ -151,5 +152,22 @@ public class BugFreeHttpSession {
         } catch (IllegalStateException x) {
             then(x.getMessage()).contains(s.getId()).contains("expired");
         }
+    }
+    
+    @Test
+    public void setId() {
+        HttpSession s = new HttpSession();
+        try {
+            for (String BLANK: BLANKS) {
+                s.setId(BLANK);
+                fail("missing check for not blankable parameters");
+            }
+        } catch (IllegalArgumentException x) {
+            then(x.getMessage()).contains("id").contains("can not be blank");
+        }
+        
+        final String ID = "123456";
+        s.setId(ID);
+        then(s.getId()).isEqualTo(ID);
     }
 }

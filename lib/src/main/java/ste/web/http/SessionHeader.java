@@ -27,10 +27,12 @@ import org.apache.http.message.BasicHeaderElement;
  */
 public class SessionHeader implements Header {
     
+    public static final String SESSION_HEADER = "JSESSIONID";
+    
     private final HttpCookie cookie;
     
     public SessionHeader(final String sessionId) {
-        cookie = new HttpCookie("JSESSIONID", sessionId);
+        cookie = new HttpCookie(SESSION_HEADER, sessionId);
         cookie.setPath("/");
     }
 
@@ -56,6 +58,6 @@ public class SessionHeader implements Header {
     
     @Override
     public String toString() {
-        return cookie.toString();
+        return getValue();
     }
 }

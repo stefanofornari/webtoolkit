@@ -96,6 +96,7 @@ public class BugFreeVelocityHandler {
     public void engineSetUpAndNoView() throws Exception {
         then(handler).isNotNull();
         then(handler.getViewsFolder()).isEqualTo(DEFAULT_VIEWS_PREFIX);
+        then(handler.getEngine()).isNotNull();
     }
 
     
@@ -138,6 +139,7 @@ public class BugFreeVelocityHandler {
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
         then(response.getStatusLine().getReasonPhrase()).contains(TEST_NO_VIEW1);
     }
+    
     /**
      * Velocity views are identified by the .v extension. We replace here 
      * <cde>request.isHandled()</vode> available in jetty with a check on 
@@ -168,6 +170,12 @@ public class BugFreeVelocityHandler {
             //
             then(x.getCause()).isInstanceOf(ParseErrorException.class);
         }
+    }
+    
+    @Test
+    public void noViewProvided() throws Exception {
+        handler.handle(request, response, context);
+        then(response.getEntity().getContentLength()).isEqualTo(-1);
     }
 
     @Test

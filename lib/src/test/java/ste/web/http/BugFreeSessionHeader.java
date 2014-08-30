@@ -15,6 +15,7 @@
  */
 package ste.web.http;
 
+import org.apache.http.HeaderElement;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 
@@ -29,9 +30,19 @@ public class BugFreeSessionHeader {
     public void headerMustHaveSessionAndPath() {
         SessionHeader h = new SessionHeader("12345");
         then(h.getName()).isEqualTo("Set-Cookie");
-        then(h.toString()).isEqualTo("JSESSIONID=\"12345\";$Path=\"/\"");
+        then(h.toString()).isEqualTo(h.SESSION_HEADER + "=\"12345\";$Path=\"/\"");
         
         h = new SessionHeader("67890");
-        then(h.toString()).isEqualTo("JSESSIONID=\"67890\";$Path=\"/\"");
+        then(h.toString()).isEqualTo(h.SESSION_HEADER + "=\"67890\";$Path=\"/\"");
+    }
+    
+    @Test
+    public void getElements() {
+        SessionHeader h = new SessionHeader("12345");
+        HeaderElement[] elements = h.getElements();
+        
+        then(elements).isNotNull().hasSize(1);
+        then(elements[0].getName()).isEqualTo(h.getName());
+        then(elements[0].getValue()).isEqualTo(h.getValue());
     }
 }

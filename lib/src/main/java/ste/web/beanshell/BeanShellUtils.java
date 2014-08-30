@@ -36,11 +36,9 @@ import java.util.Enumeration;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.json.JSONArray;
@@ -51,6 +49,7 @@ import org.json.JSONTokener;
 import static ste.web.beanshell.Constants.*;
 import ste.web.http.BasicHttpConnection;
 import ste.web.http.HttpSessionContext;
+import ste.web.http.HttpUtils;
 import ste.web.http.QueryString;
 
 /**
@@ -141,7 +140,7 @@ public class BeanShellUtils {
         interpreter.set(VAR_SESSION,  context                  );
         interpreter.set(VAR_OUT,      connection.getWriter()   );
         interpreter.set(VAR_LOG,      log                      );
-        if (hasJSONBody(request) && (request instanceof HttpEntityEnclosingRequest)) {
+        if (HttpUtils.hasJSONBody(request) && (request instanceof HttpEntityEnclosingRequest)) {
             interpreter.set(VAR_BODY, getJSONBody(getEntityInputStream(request)));
         }
     }
@@ -280,25 +279,6 @@ public class BeanShellUtils {
             return false;
         }
         
-        return CONTENT_TYPE_JSON.equals(contentType)
-            || contentType.startsWith(CONTENT_TYPE_JSON + ";");
-    }
-    
-    /**
-     * Returns true if the request content is supposed to contain a json object
-     * as per the specified content type
-     * 
-     * @param request the request
-     * 
-     * @return true if the content type is "application/json", false otherwise
-     */
-    public static boolean hasJSONBody(HttpRequest request) {
-        Header[] headers = request.getHeaders(HTTP.CONTENT_TYPE);
-        if ((headers == null) || (headers.length == 0)) {
-            return false;
-        }
-        
-        String contentType = headers[0].getValue();
         return CONTENT_TYPE_JSON.equals(contentType)
             || contentType.startsWith(CONTENT_TYPE_JSON + ";");
     }

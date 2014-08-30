@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.UUID;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.protocol.HttpContext;
-import ste.web.http.SessionHeader;
 
 /**
  *

@@ -50,7 +50,7 @@ public class JettyServer {
             server.join();
         } catch (Exception e) {
             //
-            // TODO: log the error?
+            // log the error?
             //
             e.printStackTrace();
             return false;

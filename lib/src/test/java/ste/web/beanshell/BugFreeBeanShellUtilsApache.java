@@ -244,6 +244,11 @@ public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
         }
     }
     
+    @Test
+    public void hasJSONBody() {
+        
+    }
+    
     // --------------------------------------------------------- private methods
     
     private BasicHttpConnection getConnection() throws IOException {
