@@ -15,40 +15,23 @@
  */
 package ste.web.http;
 
-import java.util.HashMap;
-import org.apache.http.protocol.HttpContext;
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Test;
 
 /**
- *
+ * TODO: see cobertura report
+ * 
  * @author ste
  */
-public class HttpSessionContext 
-    extends HashMap<String, Object>
-    implements HttpContext {
+public class BugFreeSessionHeader {
     
-    private HttpSession session;
-
-    @Override
-    public Object getAttribute(final String id) {
-        return get(id);
+    @Test
+    public void headerMustHaveSessionAndPath() {
+        SessionHeader h = new SessionHeader("12345");
+        then(h.getName()).isEqualTo("Set-Cookie");
+        then(h.toString()).isEqualTo("JSESSIONID=\"12345\";$Path=\"/\"");
+        
+        h = new SessionHeader("67890");
+        then(h.toString()).isEqualTo("JSESSIONID=\"67890\";$Path=\"/\"");
     }
-
-    @Override
-    public void setAttribute(final String id, final Object obj) {
-        put(id, obj);
-    }
-
-    @Override
-    public Object removeAttribute(final String id) {
-        return remove(id);
-    }
-    
-    public HttpSession getSession() {
-        return session;
-    }
-    
-    public void setSession(final HttpSession session) {
-        this.session = session;
-    }
-    
 }
