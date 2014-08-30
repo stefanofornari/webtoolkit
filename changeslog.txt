@@ -1,6 +1,6 @@
 20140929
 - released v1.4.0
-- added velovity handler for httpcore
+- added velocity handler for httpcore
 
 2014015
 - renamed to webtoolkit, webtoolkitlib, webtoolkitwebapp
