@@ -98,11 +98,34 @@ public class BugFreeBeanShellHandler {
         );
         handler = new BeanShellHandler(new File(ROOT).getAbsolutePath());
     }
-
+   
+    @Test
+    public void constructors() throws Exception {
+        try {
+            new BeanShellHandler(null);
+            fail("missing check for null parameters");
+        } catch (IllegalArgumentException x) {
+            then(x.getMessage()).contains("webroot").contains("not be null");
+        }
+        
+        BeanShellHandler h = new BeanShellHandler(new File(ROOT).getAbsolutePath());
+        then(h.getControllersFolder()).isNull();
+        
+        h = new BeanShellHandler(new File(ROOT).getAbsolutePath(), "/c");
+        then(h.getControllersFolder()).isEqualTo("/c");
+        
+        h = new BeanShellHandler(new File(ROOT).getAbsolutePath(), null);
+        then(h.getControllersFolder()).isNull();
+        
+        h = new BeanShellHandler(new File(ROOT).getAbsolutePath(), "/a");
+        then(h.getControllersFolder()).isEqualTo("/a");
+    }
+    
     @Test
     public void interpreterSetUp() throws Exception {
-        then(new BeanShellHandler().getInterpreter()).isNotNull();
+        then(new BeanShellHandler(".").getInterpreter()).isNotNull();
     }
+
 
     @Test
     public void execScriptDefaultDirs() throws Exception {

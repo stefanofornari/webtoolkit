@@ -60,16 +60,26 @@ public class BeanShellHandler implements HttpRequestHandler {
 
     // ------------------------------------------------------------ Constructors
 
-    public BeanShellHandler() {
-        this(null);
-    }
-    
-    public BeanShellHandler(final String appsRoot) {
+    /**
+     * Creates a new BeanShellHandler looking for scripts from the given webroot
+     * and using the default controller folder.
+     * 
+     * @param webroot - NOT NULL
+     */
+    public BeanShellHandler(final String webroot) {
+        if (webroot == null) {
+            throw new IllegalArgumentException("webroot can not be null");
+        }
         this.bsh = null;
         this.controllersFolder = null;
-        this.appsRoot = appsRoot;
+        this.appsRoot = webroot;
         this.log = Logger.getLogger(LOG_NAME);
         this.bsh = new Interpreter();
+    }
+    
+    public BeanShellHandler(final String webroot, final String controllerFolder) {
+        this(webroot);
+        setControllersFolder(controllerFolder);
     }
 
     // ---------------------------------------------------------- Public methods
