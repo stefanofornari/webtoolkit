@@ -37,7 +37,7 @@ public class BasicHttpConnectionFactory
 implements HttpConnectionFactory<BasicHttpConnection> {
   
 
-    public static final BasicHttpConnection INSTANCE = new BasicHttpConnection();
+    public static final BasicHttpConnectionFactory INSTANCE = new BasicHttpConnectionFactory();
 
     private final ConnectionConfig config;
     private final ContentLengthStrategy incomingContentStrategy;
