@@ -21,10 +21,12 @@
  */
 package ste.web.http.velocity;
 
+import java.io.File;
 import java.net.URI;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicRequestLine;
@@ -91,14 +93,29 @@ public class BugFreeVelocityHandler {
         context = new HttpSessionContext();
         handler = new VelocityHandler(ROOT);
     }
-
+    
     @Test
-    public void engineSetUpAndNoView() throws Exception {
-        then(handler).isNotNull();
+    public void constructors() throws Exception {
+        try {
+            new VelocityHandler(null);
+            fail("missing check for null parameters");
+        } catch (IllegalArgumentException x) {
+            then(x.getMessage()).contains("webroot").contains("not be null");
+        }
+        
+        VelocityHandler h = new VelocityHandler(new File(ROOT).getAbsolutePath());
         then(handler.getViewsFolder()).isEqualTo(DEFAULT_VIEWS_PREFIX);
         then(handler.getEngine()).isNotNull();
+        
+        h = new VelocityHandler(new File(ROOT).getAbsolutePath(), "/v");
+        then(h.getViewsFolder()).isEqualTo("/v");
+        
+        h = new VelocityHandler(new File(ROOT).getAbsolutePath(), null);
+        then(h.getViewsFolder()).isEqualTo(DEFAULT_VIEWS_PREFIX);
+        
+        h = new VelocityHandler(new File(ROOT).getAbsolutePath(), "/a");
+        then(h.getViewsFolder()).isEqualTo("/a");
     }
-
     
     @Test
     public void viewDefaultDirs() throws Exception {
@@ -212,5 +229,25 @@ public class BugFreeVelocityHandler {
             String.format("Second (%s,%s,%s)", TEST_VALUE1, TEST_VALUE2, TEST_VALUE3)
         );
     }
+    
+    @Test
+    public void setContentTypeIfNotSetAlready() throws Exception {
+        //
+        // content-type not set yet
+        //
+        context.setAttribute(ATTR_VIEW, TEST_VIEW1);
+        handler.handle(request, response, context);
+        then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+        then(response.getEntity().getContentType().getValue()).isEqualTo("text/plain");
+        
+        //
+        // content-type already set
+        //
+        ((BasicHttpEntity)response.getEntity()).setContentType("octect/stream");
+        handler.handle(request, response, context);
+        then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+        then(response.getEntity().getContentType().getValue()).isEqualTo("octect/stream");
+    }
+            
     // --------------------------------------------------------- Private methods
 }

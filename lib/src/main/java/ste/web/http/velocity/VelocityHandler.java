@@ -29,6 +29,7 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -61,16 +62,26 @@ public class VelocityHandler implements HttpRequestHandler  {
     private String viewsFolder;
 
     // ------------------------------------------------------------ Constructors
-    public VelocityHandler(final String appsRoot) {
+    
+    public VelocityHandler(final String webroot) {
+        if (webroot == null) {
+            throw new IllegalArgumentException("webroot can not be null");
+        }
+        
         engine = new VelocityEngine();
         
-        engine.setProperty("file.resource.loader.path", appsRoot);
+        engine.setProperty("file.resource.loader.path", webroot);
         engine.setProperty("file.resource.loader.class", "org.apache.velocity.runtime.resource.loader.FileResourceLoader");
         engine.setProperty( "resource.loader", "file" );
 
         engine.init();
         
         setViewsFolder(null);
+    }
+    
+    public VelocityHandler(final String webroot, final String viewsFolder) {
+        this(webroot);
+        setViewsFolder(viewsFolder);
     }
 
     // ---------------------------------------------------------- Public methods
@@ -134,6 +145,9 @@ public class VelocityHandler implements HttpRequestHandler  {
         BasicHttpEntity body = (BasicHttpEntity)response.getEntity();
         body.setContentLength(baos.size());
         body.setContent(new ByteArrayInputStream(baos.toByteArray()));
+        if ((body.getContentType() == null) || StringUtils.isBlank(body.getContentType().getValue())) {
+            body.setContentType("text/plain");
+        }
     }
 
     /**
