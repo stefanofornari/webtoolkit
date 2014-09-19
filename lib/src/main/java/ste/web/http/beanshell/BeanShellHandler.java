@@ -109,10 +109,6 @@ public class BeanShellHandler implements HttpRequestHandler {
             log.fine(String.format("serving %s", uri));
         }
 
-        if (!uri.endsWith(".bsh")) {
-            return;
-        }
-
         if (controllersFolder == null) {
             controllersFolder = DEFAULT_CONTROLLERS_PREFIX;
         } else {

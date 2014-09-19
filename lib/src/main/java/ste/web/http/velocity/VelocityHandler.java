@@ -121,10 +121,6 @@ public class VelocityHandler implements HttpRequestHandler  {
         if (view == null) {
             return;
         }
-
-        if (!view.endsWith(".v")) {
-            return;
-        }
         
         view = getViewPath(request.getRequestLine().getUri(), view);
         
