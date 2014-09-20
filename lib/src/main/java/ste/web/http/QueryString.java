@@ -818,7 +818,7 @@ public class QueryString {
      * @param append whether to append (or set)
      */
     private void appendOrSet(final CharSequence parameters, final boolean append) {
-        if (StringUtils.isBlank(parameters.toString())) {
+        if ((parameters == null) || StringUtils.isBlank(parameters.toString())) {
             return;
         }
 

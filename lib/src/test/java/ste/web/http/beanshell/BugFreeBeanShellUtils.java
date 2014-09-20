@@ -22,6 +22,7 @@
 package ste.web.http.beanshell;
 
 import bsh.Interpreter;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
@@ -30,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
@@ -246,7 +249,30 @@ public class BugFreeBeanShellUtils {
     }
     
     @Test
-    public void hasJSONBody() {
+    public void formUrlEncodedParameters() throws Exception {
+        BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("get", TEST_URI09);
+        StringEntity e = new StringEntity(TEST_QUERY_STRING);
+        e.setContentType(ContentType.APPLICATION_FORM_URLENCODED.getMimeType());
+        request.setEntity(e);
+        
+        HttpSessionContext context = new HttpSessionContext();
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
+        request.addHeader(HTTP.CONTENT_TYPE, e.getContentType().getValue());
+        
+        Interpreter i = new Interpreter();
+        BeanShellUtils.setup(i, request, RESPONSE_OK, context);
+        
+        then(i.get(TEST_URL_PARAM1)).isEqualTo(TEST_VALUE1);
+        then(i.get(TEST_URL_PARAM2)).isEqualTo(TEST_VALUE2);
+        
+        e.setContentType(ContentType.APPLICATION_FORM_URLENCODED.getMimeType() + " ; charset=UTF-8");
+        request.setHeader(HTTP.CONTENT_TYPE, e.getContentType().getValue());
+        
+        i = new Interpreter();
+        BeanShellUtils.setup(i, request, RESPONSE_OK, context);
+        
+        then(i.get(TEST_URL_PARAM1)).isEqualTo(TEST_VALUE1);
+        then(i.get(TEST_URL_PARAM2)).isEqualTo(TEST_VALUE2);
         
     }
     

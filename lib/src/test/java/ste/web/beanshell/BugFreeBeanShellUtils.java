@@ -74,21 +74,25 @@ public class BugFreeBeanShellUtils {
     public static final String TEST_URI08 = "/nobsh";
     public static final String TEST_URI09 = "/parameters.bsh";
     public static final String TEST_URI10 = "/missingview.bsh";
+    
+    public static final String TEST_QUERY_STRING = TEST_URL_PARAM1
+                                                 + "="
+                                                 + TEST_VALUE1
+                                                 + "&"
+                                                 + TEST_URL_PARAM2
+                                                 + "="
+                                                 + TEST_VALUE2
+                                                 + "&"
+                                                 + TEST_URL_PARAM3
+                                                 + "="
+                                                 + TEST_VALUE3
+                                                 ;
 
-    public static final String TEST_URI_PARAMETERS = "/some/parameters.bsh?"
-                                         + TEST_URL_PARAM1
-                                         + "="
-                                         + TEST_VALUE1
-                                         + "&"
-                                         + TEST_URL_PARAM2
-                                         + "="
-                                         + TEST_VALUE2
-                                         + "&"
-                                         + TEST_URL_PARAM3
-                                         + "="
-                                         + TEST_VALUE3
-                                         ;
-
+    public static final String TEST_URI_PARAMETERS 
+        = "/some/parameters.bsh?" + TEST_QUERY_STRING;
+                                         
+    // -------------------------------------------------------------------------
+    
     @Test
     public void getScriptNull() throws Exception {
         try {

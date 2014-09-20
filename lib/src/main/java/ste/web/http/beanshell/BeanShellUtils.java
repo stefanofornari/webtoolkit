@@ -23,21 +23,20 @@ package ste.web.http.beanshell;
 
 import bsh.EvalError;
 import bsh.Interpreter;
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.entity.ContentType;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import static ste.web.beanshell.Constants.*;
 import ste.web.http.BasicHttpConnection;
@@ -67,8 +66,26 @@ public class BeanShellUtils extends ste.web.beanshell.BeanShellUtils {
         }
         
         //
+        // If the request contains url-encoded body, set the given parameters
+        //
+        Header[] headers = request.getHeaders(HttpHeaders.CONTENT_TYPE);
+        if (headers.length > 0) {
+            String contentType = headers[0].getValue();
+            if (contentType.matches(ContentType.APPLICATION_FORM_URLENCODED.getMimeType() + "( *;.*)?")) {
+                HttpEntityEnclosingRequest r = (HttpEntityEnclosingRequest)request;
+                HttpEntity e = r.getEntity();
+
+                QueryString qs = QueryString.parse(IOUtils.toString(e.getContent()));
+                for (String n: qs.getNames()) {
+                    String name = normalizeVariableName(n);
+                    interpreter.set(name, qs.getValues(n).get(0));
+                }
+            }
+        }
+        
+        //
         // Set request parameters as script variables. Note that parameters
-        // override attributes
+        // override attributes (note that these override form content
         //
         try {
             QueryString qs = QueryString.parse(new URI(request.getRequestLine().getUri()));
