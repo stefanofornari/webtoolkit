@@ -1,3 +1,7 @@
+20140920
+- released v1.4.3
+- bug fixing
+
 20140919
 - released v1.4.2
 - BeanShellHandler and VelocityHandler can handle urls that do not end with .bsh
