@@ -34,7 +34,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import ste.web.beanshell.BeanShellUtils;
 
 import static ste.web.beanshell.Constants.*;
 
@@ -43,8 +42,6 @@ import static ste.web.beanshell.Constants.*;
  * @author ste
  */
 public class BeanShellHandler extends AbstractHandler {
-
-    // --------------------------------------------------------------- Constants
 
     // ------------------------------------------------------------ Private data
 

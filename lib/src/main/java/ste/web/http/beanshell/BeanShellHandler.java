@@ -35,8 +35,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
-import ste.web.beanshell.BeanShellUtils;
-
 
 import static ste.web.beanshell.Constants.*;
 import ste.web.http.HttpSessionContext;
@@ -105,6 +103,10 @@ public class BeanShellHandler implements HttpRequestHandler {
                        HttpContext  context) throws HttpException, IOException {
         
         String uri = request.getRequestLine().getUri();
+        int pos = uri.indexOf('?');
+        if (pos >= 0) {
+            uri = uri.substring(0, pos);
+        }
         if (log.isLoggable(Level.FINE)) {
             log.fine(String.format("serving %s", uri));
         }

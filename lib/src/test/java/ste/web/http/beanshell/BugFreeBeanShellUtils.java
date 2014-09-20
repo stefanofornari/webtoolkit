@@ -19,7 +19,7 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.web.beanshell;
+package ste.web.http.beanshell;
 
 import bsh.Interpreter;
 import java.io.IOException;
@@ -43,6 +43,7 @@ import org.json.JSONException;
 import org.junit.Test;
 import static ste.web.beanshell.BeanShellUtils.CONTENT_TYPE_JSON;
 
+import static ste.web.beanshell.BugFreeBeanShellUtils.*;
 import ste.web.http.BasicHttpConnection;
 import ste.web.http.HttpSessionContext;
 import ste.web.http.QueryString;
@@ -55,7 +56,7 @@ import ste.xtest.net.TestSocket;
  *
  * @author ste
  */
-public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
+public class BugFreeBeanShellUtils {
     
     private static final BasicHttpResponse RESPONSE_OK = 
         new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
@@ -81,7 +82,7 @@ public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
         attributes.put(TEST_REQ_ATTR_NAME3, Arrays.asList(TEST_VALUE3));
         
         URI uri = new URI(request.getRequestLine().getUri());
-        checkSetup(i, QueryString.parse(uri).getMap(), attributes);
+        ste.web.beanshell.BugFreeBeanShellUtils.checkSetup(i, QueryString.parse(uri).getMap(), attributes);
     }
 
     @Test
@@ -100,7 +101,7 @@ public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
         // parameters are not valid variable any more so to avoid that next
         // invocations will inherit them
         //
-        checkCleanup(i, QueryString.parse(request.getRequestLine().getUri()).getNames());
+        checkCleanup(i, QueryString.parse(new URI(request.getRequestLine().getUri())).getNames());
     }
 
     @Test

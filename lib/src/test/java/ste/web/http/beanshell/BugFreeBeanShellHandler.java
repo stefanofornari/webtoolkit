@@ -37,28 +37,8 @@ import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import org.junit.Before;
 import ste.web.beanshell.BeanShellUtils;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_REQ_ATTR_NAME1;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_REQ_ATTR_NAME2;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_REQ_ATTR_NAME3;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI01;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI02;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI03;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI04;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI05;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI06;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI07;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI10;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI_PARAMETERS;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_VALUE1;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_VALUE2;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_VALUE3;
-import static ste.web.beanshell.Constants.ATTR_VIEW;
-import static ste.web.beanshell.Constants.VAR_LOG;
-import static ste.web.beanshell.Constants.VAR_OUT;
-import static ste.web.beanshell.Constants.VAR_REQUEST;
-import static ste.web.beanshell.Constants.VAR_RESPONSE;
-import static ste.web.beanshell.Constants.VAR_SESSION;
-import static ste.web.beanshell.Constants.VAR_SOURCE;
+import static ste.web.beanshell.BugFreeBeanShellUtils.*;
+import static ste.web.beanshell.Constants.*;
 import ste.web.http.BasicHttpConnection;
 import ste.web.http.HttpSessionContext;
 import ste.xtest.net.TestSocket;
@@ -238,6 +218,15 @@ public class BugFreeBeanShellHandler {
         then(context.getAttribute("something")).isNull(); // just to make sure it
                                                           // does not always return
                                                           // the same
+    }
+    
+    @Test
+    public void variablesParameters() throws Exception {
+        handler.handle(get(TEST_URI_PARAMETERS), response, context);
+        Interpreter i = handler.getInterpreter();
+        then(i.get("p1")).isEqualTo("uno");
+        then(i.get("p2")).isEqualTo("due");
+        then(i.get("p3")).isEqualTo("tre");
     }
 
     // --------------------------------------------------------- Private methods
