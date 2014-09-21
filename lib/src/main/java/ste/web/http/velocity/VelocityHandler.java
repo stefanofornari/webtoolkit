@@ -36,6 +36,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.velocity.Template;
@@ -142,7 +143,7 @@ public class VelocityHandler implements HttpRequestHandler  {
         body.setContentLength(baos.size());
         body.setContent(new ByteArrayInputStream(baos.toByteArray()));
         if ((body.getContentType() == null) || StringUtils.isBlank(body.getContentType().getValue())) {
-            body.setContentType("text/plain");
+            body.setContentType(ContentType.TEXT_HTML.getMimeType());
         }
     }
 

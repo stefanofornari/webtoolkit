@@ -27,6 +27,7 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicRequestLine;
@@ -238,16 +239,20 @@ public class BugFreeVelocityHandler {
         context.setAttribute(ATTR_VIEW, TEST_VIEW1);
         handler.handle(request, response, context);
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
-        then(response.getEntity().getContentType().getValue()).isEqualTo("text/plain");
+        then(response.getEntity().getContentType().getValue()).isEqualTo(mime(ContentType.TEXT_HTML));
         
         //
         // content-type already set
         //
-        ((BasicHttpEntity)response.getEntity()).setContentType("octect/stream");
+        ((BasicHttpEntity)response.getEntity()).setContentType(mime(ContentType.APPLICATION_OCTET_STREAM));
         handler.handle(request, response, context);
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
-        then(response.getEntity().getContentType().getValue()).isEqualTo("octect/stream");
+        then(response.getEntity().getContentType().getValue()).isEqualTo(mime(ContentType.APPLICATION_OCTET_STREAM));
     }
             
     // --------------------------------------------------------- Private methods
+    
+    private String mime(final ContentType type) {
+        return type.getMimeType();
+    }
 }
