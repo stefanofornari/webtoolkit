@@ -1,3 +1,7 @@
+20140921
+- released v1.4.4
+- added FileHandler handler
+
 20140920
 - released v1.4.3
 - bug fixing
