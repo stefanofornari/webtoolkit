@@ -100,7 +100,6 @@ implements HttpContext {
     
     public void expire() {
         expired = true;
-        System.out.printf("hash: %d, id: %s expired\n", hashCode(), getId());
     }
     
     // --------------------------------------------------------- private methods
