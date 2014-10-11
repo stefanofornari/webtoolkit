@@ -1,3 +1,10 @@
+20141011
+- released v1.4.5
+- fixed issue #4 - FileHandler: query string not property handled
+
+20141004
+- added mutable BasicStatusLine
+
 20140921
 - released v1.4.4
 - added FileHandler handler
