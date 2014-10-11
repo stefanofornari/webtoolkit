@@ -18,8 +18,9 @@ package ste.web.http.handlers;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
-import java.nio.charset.Charset;
 import java.util.Locale;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
@@ -82,7 +83,14 @@ public class FileHandler implements HttpRequestHandler  {
             byte[] entityContent = EntityUtils.toByteArray(entity);
         }
 
-        final File file = new File(this.docRoot, URLDecoder.decode(target, "UTF-8"));
+        
+        URI uri = null;
+        try {
+            uri = new URI(target);
+        } catch (URISyntaxException x) {
+            throw new HttpException("malformed URL '" + target + "'");
+        }
+        final File file = new File(this.docRoot, uri.getPath());
         if (!file.exists()) {
             response.setStatusCode(HttpStatus.SC_NOT_FOUND);
             StringEntity entity = new StringEntity(
