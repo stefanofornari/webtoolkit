@@ -27,9 +27,10 @@ import org.apache.http.HttpVersion;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.EnglishReasonPhraseCatalog;
 import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.message.BasicStatusLine;
 import org.apache.http.protocol.HTTP;
 import static ste.web.beanshell.BeanShellUtils.CONTENT_TYPE_JSON;
+
+import ste.web.http.message.BasicStatusLine;
 
 /**
  *
