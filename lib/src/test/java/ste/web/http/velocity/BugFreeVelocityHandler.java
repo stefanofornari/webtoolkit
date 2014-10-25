@@ -36,7 +36,6 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import org.junit.Before;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI04;
 
 import static ste.web.beanshell.Constants.*;
 import ste.web.http.HttpSessionContext;
@@ -63,6 +62,7 @@ public class BugFreeVelocityHandler {
     public static final String TEST_VALUE1 = "uno";
     public static final String TEST_VALUE2 = "due";
     public static final String TEST_VALUE3 = "tre";
+    public static final String TEST_VALUE4 = "uno/due"; // path separators may cause issues
 
     public static final String TEST_VIEW1    = "first.v";
     public static final String TEST_VIEW2    = "second.v";
@@ -89,7 +89,10 @@ public class BugFreeVelocityHandler {
 
     @Before
     public void startUp() throws Exception {
-        request = new BasicHttpRequest("GET", "index.v");
+        request = new BasicHttpRequest(
+            "GET", 
+            String.format("controller.bsh?%s=%s", TEST_URL_PARAM1, TEST_VALUE4)
+        );
         response = HttpUtils.getBasicResponse(true);
         context = new HttpSessionContext();
         handler = new VelocityHandler(ROOT);
@@ -145,7 +148,7 @@ public class BugFreeVelocityHandler {
         handler.setViewsFolder("/views");
 
         context.setAttribute(ATTR_VIEW, TEST_VIEW5);
-        handler.handle(new BasicHttpRequest("GET", TEST_URI04), response, context);
+        handler.handle(new BasicHttpRequest("GET", "/first/controller.bsh"), response, context);
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
     }
 

@@ -186,16 +186,21 @@ public class VelocityHandler implements HttpRequestHandler  {
         return context;
     }
 
-    private String getViewPath(final String uri, final String view) {
-        File uriFile = new File(uri);
-        File viewFile = new File(
-                            uriFile.getParent(),
-                            new File(
-                                viewsFolder,
-                                view
-                            ).getPath()
-                        );
+    private String getViewPath(final String uri, final String view) 
+    throws HttpException {
+        try {
+            File uriFile = new File(new URI(uri).getPath());
+            File viewFile = new File(
+                                uriFile.getParent(),
+                                new File(
+                                    viewsFolder,
+                                    view
+                                ).getPath()
+                            );
 
-        return viewFile.getPath();
+            return viewFile.getPath();
+        } catch (URISyntaxException x) {
+            throw new HttpException("URI syntax error for '" + uri + "'", x);
+        }
     }
 }
