@@ -1,0 +1,2 @@
+20141025
+- fixed issue #5 - VelocityHandler not correctly deriving the view when the URL's query string contains a path separator
