@@ -43,16 +43,14 @@ import ste.web.http.BasicHttpConnection;
 import ste.web.http.HttpSessionContext;
 import ste.xtest.net.TestSocket;
 
-
 /**
  *
  * @author ste
  */
 public class BugFreeBeanShellHandler {
-    
+
     private static final String GET = "GET";
     private static final String ROOT = "src/test/resources";
-
 
     protected BasicHttpRequest request;
     protected BasicHttpResponse response;
@@ -74,11 +72,11 @@ public class BugFreeBeanShellHandler {
         context.setAttribute(TEST_REQ_ATTR_NAME2, TEST_VALUE2);
         context.setAttribute(TEST_REQ_ATTR_NAME3, TEST_VALUE3);
         response = new BasicHttpResponse(
-            new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK")
+                new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK")
         );
         handler = new BeanShellHandler(new File(ROOT).getAbsolutePath());
     }
-   
+
     @Test
     public void constructors() throws Exception {
         try {
@@ -87,33 +85,27 @@ public class BugFreeBeanShellHandler {
         } catch (IllegalArgumentException x) {
             then(x.getMessage()).contains("webroot").contains("not be null");
         }
-        
+
         BeanShellHandler h = new BeanShellHandler(new File(ROOT).getAbsolutePath());
         then(h.getControllersFolder()).isNull();
-        
+
         h = new BeanShellHandler(new File(ROOT).getAbsolutePath(), "/c");
         then(h.getControllersFolder()).isEqualTo("/c");
-        
+
         h = new BeanShellHandler(new File(ROOT).getAbsolutePath(), null);
         then(h.getControllersFolder()).isNull();
-        
+
         h = new BeanShellHandler(new File(ROOT).getAbsolutePath(), "/a");
         then(h.getControllersFolder()).isEqualTo("/a");
     }
-    
-    @Test
-    public void interpreterSetUp() throws Exception {
-        then(new BeanShellHandler(".").getInterpreter()).isNotNull();
-    }
-
 
     @Test
     public void execScriptDefaultDirs() throws Exception {
         handler.handle(get(TEST_URI01), response, context);
-        then(handler.getInterpreter().get("first")).isNotNull();
+        then(context.get("first")).isNotNull();
 
         handler.handle(get(TEST_URI02), response, context);
-        then(handler.getInterpreter().get("second")).isNotNull();
+        then(context.get("second")).isNotNull();
     }
 
     @Test
@@ -121,10 +113,10 @@ public class BugFreeBeanShellHandler {
         handler.setControllersFolder("controllers");
 
         handler.handle(get(TEST_URI03), response, context);
-        then(handler.getInterpreter().get("firstcontroller")).isNotNull();
+        then(context.get("firstcontroller")).isNotNull();
 
         handler.handle(get(TEST_URI04), response, context);
-        then(handler.getInterpreter().get("secondcontroller")).isNotNull();
+        then(context.get("secondcontroller")).isNotNull();
     }
 
     @Test
@@ -158,36 +150,34 @@ public class BugFreeBeanShellHandler {
 
     /**
      * TODO: Not doable with httpcore; do we need it?
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     /*
-    @Test
-    public void execBshOnly() throws Exception {
-        handler.handle(get(TEST_URI08), response, context);
-        assertFalse(request.isHandled());
-    }
-    */
-    
+     @Test
+     public void execBshOnly() throws Exception {
+     handler.handle(get(TEST_URI08), response, context);
+     assertFalse(request.isHandled());
+     }
+     */
     @Test
     public void setMainVariables() throws Exception {
         BasicHttpRequest request = get(TEST_URI01);
         handler.handle(request, response, context);
 
-        Interpreter i = handler.getInterpreter();
-        then(i.get(VAR_REQUEST)).isSameAs(request);
-        then(i.get(VAR_RESPONSE)).isSameAs(response);
-        then(i.get(VAR_SESSION)).isSameAs(context);
-        then(i.get(VAR_LOG)).isNotNull();
-        then(i.get(VAR_OUT)).isNotNull();
+        then(context.get(VAR_REQUEST)).isSameAs(request);
+        then(context.get(VAR_RESPONSE)).isSameAs(response);
+        then(context.get(VAR_SESSION)).isSameAs(context);
+        then(context.get(VAR_LOG)).isNotNull();
+        then(context.get(VAR_OUT)).isNotNull();
         then(new File(ROOT, TEST_URI01).getAbsolutePath())
-            .isEqualTo(handler.getInterpreter().get(VAR_SOURCE));
+                .isEqualTo(context.get(VAR_SOURCE));
     }
 
     @Test
     public void returnView() throws Exception {
         handler.handle(get(TEST_URI01), response, context);
-        Interpreter i = handler.getInterpreter();
-        then(i.get(ATTR_VIEW)).isEqualTo("main.v");
+        then(context.get(ATTR_VIEW)).isEqualTo("main.v");
     }
 
     @Test
@@ -203,41 +193,71 @@ public class BugFreeBeanShellHandler {
     @Test
     public void requestAttributes() throws Exception {
         handler.handle(get(TEST_URI01), response, context);
-        Interpreter i = handler.getInterpreter();
-        for(String name: context.keySet()) {
+        for (String name : context.keySet()) {
             System.out.println("key: " + name + ", value: " + context.getAttribute(name));
-            then(i.get(BeanShellUtils.normalizeVariableName(name))).isEqualTo(context.getAttribute(name));
+            then(context.get(BeanShellUtils.normalizeVariableName(name))).isEqualTo(context.getAttribute(name));
         }
     }
 
     @Test
     public void variablesAttribute() throws Exception {
         handler.handle(get(TEST_URI01), response, context);
-        Interpreter i = handler.getInterpreter();
-        then((boolean)context.getAttribute("first")).isTrue();
+        then((boolean) context.getAttribute("first")).isTrue();
         then(context.getAttribute("something")).isNull(); // just to make sure it
-                                                          // does not always return
-                                                          // the same
+        // does not always return
+        // the same
     }
-    
+
     @Test
     public void variablesParameters() throws Exception {
         handler.handle(get(TEST_URI_PARAMETERS), response, context);
-        Interpreter i = handler.getInterpreter();
-        then(i.get("p1")).isEqualTo("uno");
-        then(i.get("p2")).isEqualTo("due");
-        then(i.get("p3")).isEqualTo("tre");
+        then(context.get("p1")).isEqualTo("uno");
+        then(context.get("p2")).isEqualTo("due");
+        then(context.get("p3")).isEqualTo("tre");
+    }
+
+    @Test
+    public void runningMultipleThreadInDifferentContexts() throws Exception {
+        final HttpSessionContext CTX1 = new HttpSessionContext();
+        final HttpSessionContext CTX2 = new HttpSessionContext();
+        CTX1.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
+        CTX2.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    handler.handle(get("/multithreading.bsh"), response, CTX1);
+                } catch (Exception x) {
+                    x.printStackTrace();
+                }
+            }
+        });
+        Thread t2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    handler.handle(get("/multithreading.bsh"), response, CTX2);
+                } catch (Exception x) {
+                    x.printStackTrace();
+                }
+            }
+        });
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        then(CTX1.get("view")).isEqualTo(t1.getName());
+        then(CTX2.get("view")).isEqualTo(t2.getName());
     }
 
     // --------------------------------------------------------- Private methods
-    
     private BasicHttpConnection getConnection() throws IOException {
         BasicHttpConnection c = new BasicHttpConnection();
         c.bind(new TestSocket());
-        
+
         return c;
     }
-    
+
     private BasicHttpRequest get(final String uri) {
         return new BasicHttpRequest(GET, uri);
     }

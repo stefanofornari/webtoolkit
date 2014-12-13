@@ -49,8 +49,6 @@ public class BeanShellHandler implements HttpRequestHandler {
     
     // ------------------------------------------------------------ Private data
 
-    private Interpreter bsh;
-
     private String controllersFolder;
     private String appsRoot;
 
@@ -68,11 +66,9 @@ public class BeanShellHandler implements HttpRequestHandler {
         if (webroot == null) {
             throw new IllegalArgumentException("webroot can not be null");
         }
-        this.bsh = null;
         this.controllersFolder = null;
         this.appsRoot = webroot;
         this.log = Logger.getLogger(LOG_NAME);
-        this.bsh = new Interpreter();
     }
     
     public BeanShellHandler(final String webroot, final String controllerFolder) {
@@ -131,6 +127,7 @@ public class BeanShellHandler implements HttpRequestHandler {
         }
 
         try {
+            Interpreter bsh = new Interpreter();
             BeanShellUtils.setup(bsh, request, response, (HttpSessionContext)context);
             bsh.set(VAR_SOURCE, scriptFile.getAbsolutePath());
             bsh.eval(BeanShellUtils.getScript(scriptFile));
@@ -157,15 +154,6 @@ public class BeanShellHandler implements HttpRequestHandler {
             }
             throw new HttpException("error evaluating " + uri + ": " + msg, x);
         }
-    }
-
-    /**
-     * Returns the interpreter used by this handler
-     *
-     * @return the interpreter used by this handler
-     */
-    public Interpreter getInterpreter() {
-        return bsh;
     }
 
     // --------------------------------------------------------- Private methods
