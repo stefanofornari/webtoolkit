@@ -22,8 +22,6 @@ public class JettyServer {
         
         String root = System.getProperty(PROPERTY_ROOT, ROOT);
         
-        System.out.println("Root: " + root);
-        
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setDirectoriesListed(true);
         resourceHandler.setWelcomeFiles(new String[]{ "index.html" });
@@ -50,7 +48,7 @@ public class JettyServer {
             server.join();
         } catch (Exception e) {
             //
-            // TODO: log the error?
+            // log the error?
             //
             e.printStackTrace();
             return false;

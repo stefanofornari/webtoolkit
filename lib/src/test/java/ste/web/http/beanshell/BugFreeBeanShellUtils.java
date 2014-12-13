@@ -19,9 +19,10 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.web.beanshell;
+package ste.web.http.beanshell;
 
 import bsh.Interpreter;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
@@ -30,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
@@ -43,6 +46,7 @@ import org.json.JSONException;
 import org.junit.Test;
 import static ste.web.beanshell.BeanShellUtils.CONTENT_TYPE_JSON;
 
+import static ste.web.beanshell.BugFreeBeanShellUtils.*;
 import ste.web.http.BasicHttpConnection;
 import ste.web.http.HttpSessionContext;
 import ste.web.http.QueryString;
@@ -55,7 +59,7 @@ import ste.xtest.net.TestSocket;
  *
  * @author ste
  */
-public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
+public class BugFreeBeanShellUtils {
     
     private static final BasicHttpResponse RESPONSE_OK = 
         new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
@@ -81,7 +85,7 @@ public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
         attributes.put(TEST_REQ_ATTR_NAME3, Arrays.asList(TEST_VALUE3));
         
         URI uri = new URI(request.getRequestLine().getUri());
-        checkSetup(i, QueryString.parse(uri).getMap(), attributes);
+        ste.web.beanshell.BugFreeBeanShellUtils.checkSetup(i, QueryString.parse(uri).getMap(), attributes);
     }
 
     @Test
@@ -100,7 +104,7 @@ public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
         // parameters are not valid variable any more so to avoid that next
         // invocations will inherit them
         //
-        checkCleanup(i, QueryString.parse(request.getRequestLine().getUri()).getNames());
+        checkCleanup(i, QueryString.parse(new URI(request.getRequestLine().getUri())).getNames());
     }
 
     @Test
@@ -242,6 +246,34 @@ public class BugFreeBeanShellUtilsApache extends BugFreeBeanShellUtils {
                 then(x.getCause()).isNotNull().isInstanceOf(JSONException.class);
             }
         }
+    }
+    
+    @Test
+    public void formUrlEncodedParameters() throws Exception {
+        BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("get", TEST_URI09);
+        StringEntity e = new StringEntity(TEST_QUERY_STRING);
+        e.setContentType(ContentType.APPLICATION_FORM_URLENCODED.getMimeType());
+        request.setEntity(e);
+        
+        HttpSessionContext context = new HttpSessionContext();
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
+        request.addHeader(HTTP.CONTENT_TYPE, e.getContentType().getValue());
+        
+        Interpreter i = new Interpreter();
+        BeanShellUtils.setup(i, request, RESPONSE_OK, context);
+        
+        then(i.get(TEST_URL_PARAM1)).isEqualTo(TEST_VALUE1);
+        then(i.get(TEST_URL_PARAM2)).isEqualTo(TEST_VALUE2);
+        
+        e.setContentType(ContentType.APPLICATION_FORM_URLENCODED.getMimeType() + " ; charset=UTF-8");
+        request.setHeader(HTTP.CONTENT_TYPE, e.getContentType().getValue());
+        
+        i = new Interpreter();
+        BeanShellUtils.setup(i, request, RESPONSE_OK, context);
+        
+        then(i.get(TEST_URL_PARAM1)).isEqualTo(TEST_VALUE1);
+        then(i.get(TEST_URL_PARAM2)).isEqualTo(TEST_VALUE2);
+        
     }
     
     // --------------------------------------------------------- private methods

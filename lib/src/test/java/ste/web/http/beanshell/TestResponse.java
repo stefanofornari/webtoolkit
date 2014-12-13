@@ -19,20 +19,19 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.web.beanshell.httpcore;
+package ste.web.http.beanshell;
 
-import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.StatusLine;
+import org.apache.http.message.BasicHttpResponse;
 
 /**
  *
  * @author ste
  */
-public class TestRequest extends  BasicHttpRequest {
+public class TestResponse extends  BasicHttpResponse {
 
-    public TestRequest(String method, String uri) {
-        super(method, uri);
+    public TestResponse(StatusLine statusline) {
+        super(statusline);
     }
-
-    
-    
+  
 }

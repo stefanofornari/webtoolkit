@@ -46,7 +46,7 @@ import static ste.web.beanshell.Constants.*;
  */
 public class BugFreeBeanShellUtils {
     
-    protected static final String[] TEST_JSON_ERRORS = {
+    public static final String[] TEST_JSON_ERRORS = {
             "", "   ", "\t ",
             "a string", "{ 'label': value", "'label': 'value'", "[{} {}]",
             "[{} {}]", "['uno', 'due'", "'tre', 'quattro']"
@@ -74,21 +74,25 @@ public class BugFreeBeanShellUtils {
     public static final String TEST_URI08 = "/nobsh";
     public static final String TEST_URI09 = "/parameters.bsh";
     public static final String TEST_URI10 = "/missingview.bsh";
+    
+    public static final String TEST_QUERY_STRING = TEST_URL_PARAM1
+                                                 + "="
+                                                 + TEST_VALUE1
+                                                 + "&"
+                                                 + TEST_URL_PARAM2
+                                                 + "="
+                                                 + TEST_VALUE2
+                                                 + "&"
+                                                 + TEST_URL_PARAM3
+                                                 + "="
+                                                 + TEST_VALUE3
+                                                 ;
 
-    public static final String TEST_URI_PARAMETERS = "/some/parameters?"
-                                         + TEST_URL_PARAM1
-                                         + "="
-                                         + TEST_VALUE1
-                                         + "&"
-                                         + TEST_URL_PARAM2
-                                         + "="
-                                         + TEST_VALUE2
-                                         + "&"
-                                         + TEST_URL_PARAM3
-                                         + "="
-                                         + TEST_VALUE3
-                                         ;
-
+    public static final String TEST_URI_PARAMETERS 
+        = "/some/parameters.bsh?" + TEST_QUERY_STRING;
+                                         
+    // -------------------------------------------------------------------------
+    
     @Test
     public void getScriptNull() throws Exception {
         try {
@@ -146,7 +150,7 @@ public class BugFreeBeanShellUtils {
         then(BeanShellUtils.normalizeVariableName(".a.b.c.")).isEqualTo("_a_b_c_");
     }
     
-    // ------------------------------------------------------- protected methods
+    // ---------------------------------------------------------- static methods
 
     /**
      * 
@@ -156,7 +160,7 @@ public class BugFreeBeanShellUtils {
      * 
      * @throws java.lang.Exception
      */
-    protected void checkSetup(
+    public static void checkSetup(
         Interpreter i, 
         Map<String, List<String>> parameters,
         Map<String, List<String>> attributes
@@ -176,7 +180,7 @@ public class BugFreeBeanShellUtils {
         }
     }
 
-    protected void checkCleanup(
+    public static void checkCleanup(
         Interpreter i, 
         Set<String> parameters
     ) throws Exception {
@@ -199,18 +203,18 @@ public class BugFreeBeanShellUtils {
         then(i.get(VAR_LOG)).isNotNull();
     }
     
-    protected void checkBodyAsNotSpecifiedType(final Interpreter i) throws Exception {
+    public static void checkBodyAsNotSpecifiedType(final Interpreter i) throws Exception {
         then(i.get(VAR_BODY)).isNull();
     }
     
-    protected void checkJSONObject(Interpreter i, final String label, final String value) 
+    public static void checkJSONObject(Interpreter i, final String label, final String value) 
     throws JSONException, EvalError {
         Object o = i.get(VAR_BODY);
         then(o).isNotNull().isInstanceOf(JSONObject.class);
         then(((JSONObject)o).getString(label)).isEqualTo(value);
     }
     
-    protected void checkJSONArray(Interpreter i, final String[] labels, final String[] values) 
+    public static void checkJSONArray(Interpreter i, final String[] labels, final String[] values) 
     throws JSONException, EvalError {
         Object o = i.get(VAR_BODY);
         then(o).isNotNull().isInstanceOf(JSONArray.class);

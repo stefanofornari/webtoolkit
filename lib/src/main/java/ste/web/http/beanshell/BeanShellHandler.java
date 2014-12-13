@@ -19,7 +19,7 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.web.beanshell.jetty;
+package ste.web.http.beanshell;
 
 import bsh.EvalError;
 import bsh.Interpreter;
@@ -28,35 +28,56 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpRequestHandler;
 
 import static ste.web.beanshell.Constants.*;
+import ste.web.http.HttpSessionContext;
 
 /**
  *
  * @author ste
  */
-public class BeanShellHandler extends AbstractHandler {
+public class BeanShellHandler implements HttpRequestHandler {
 
+    // --------------------------------------------------------------- Constants
+    
     // ------------------------------------------------------------ Private data
 
     private Interpreter bsh;
 
     private String controllersFolder;
+    private String appsRoot;
 
     private final Logger log;
 
     // ------------------------------------------------------------ Constructors
 
-    public BeanShellHandler() {
-        bsh = null;
-        controllersFolder = null;
-        log = Logger.getLogger(LOG_NAME);
+    /**
+     * Creates a new BeanShellHandler looking for scripts from the given webroot
+     * and using the default controller folder.
+     * 
+     * @param webroot - NOT NULL
+     */
+    public BeanShellHandler(final String webroot) {
+        if (webroot == null) {
+            throw new IllegalArgumentException("webroot can not be null");
+        }
+        this.bsh = null;
+        this.controllersFolder = null;
+        this.appsRoot = webroot;
+        this.log = Logger.getLogger(LOG_NAME);
+        this.bsh = new Interpreter();
+    }
+    
+    public BeanShellHandler(final String webroot, final String controllerFolder) {
+        this(webroot);
+        setControllersFolder(controllerFolder);
     }
 
     // ---------------------------------------------------------- Public methods
@@ -76,29 +97,19 @@ public class BeanShellHandler extends AbstractHandler {
         this.controllersFolder = controllersFolder;
     }
 
-
     @Override
-    protected void doStart() throws Exception {
-        bsh = new Interpreter();
-    }
-
-
-    @Override
-    public void handle(String uri,
-                       Request request,
-                       HttpServletRequest hrequest,
-                       HttpServletResponse hresponse) throws IOException, ServletException {
-        request.setHandled(false);
-
+    public void handle(HttpRequest  request,
+                       HttpResponse response,
+                       HttpContext  context) throws HttpException, IOException {
+        
+        String uri = request.getRequestLine().getUri();
+        int pos = uri.indexOf('?');
+        if (pos >= 0) {
+            uri = uri.substring(0, pos);
+        }
         if (log.isLoggable(Level.FINE)) {
             log.fine(String.format("serving %s", uri));
         }
-
-        if (!uri.endsWith(".bsh")) {
-            return;
-        }
-
-        String root = (String)getServer().getAttribute(ATTR_APP_ROOT);
 
         if (controllersFolder == null) {
             controllersFolder = DEFAULT_CONTROLLERS_PREFIX;
@@ -111,7 +122,7 @@ public class BeanShellHandler extends AbstractHandler {
             }
         }
 
-        File scriptFile = new File(root, uri);
+        File scriptFile = new File(appsRoot, uri);
         String controllerPath = scriptFile.getParent() + getControllersFolder();
         scriptFile = new File(controllerPath, scriptFile.getName());
 
@@ -120,23 +131,23 @@ public class BeanShellHandler extends AbstractHandler {
         }
 
         try {
-            BeanShellUtils.setup(bsh, hrequest, hresponse);
+            BeanShellUtils.setup(bsh, request, response, (HttpSessionContext)context);
             bsh.set(VAR_SOURCE, scriptFile.getAbsolutePath());
             bsh.eval(BeanShellUtils.getScript(scriptFile));
 
             String view = (String)bsh.get(ATTR_VIEW);
             if (view == null) {
-                throw new ServletException("view not defined. Set the variable 'view' to the name of the view to show (including .v).");
+                throw new HttpException("view not defined. Set the variable 'view' to the name of the view to show (including .v).");
             }
 
             if (log.isLoggable(Level.FINE)) {
                 log.fine("view: " + view);
             }
 
-            BeanShellUtils.cleanup(bsh, hrequest);
-            BeanShellUtils.setVariablesAttributes(bsh, request);
+            BeanShellUtils.cleanup(bsh, request);
+            BeanShellUtils.setVariablesAttributes(bsh, context);
         } catch (FileNotFoundException e) {
-            hresponse.sendError(HttpStatus.NOT_FOUND_404, "Script " + scriptFile + " not found.");
+            response.setStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_FOUND, "Script " + scriptFile + " not found.");
         } catch (EvalError x) {
             String msg = x.getMessage();
 
@@ -144,7 +155,7 @@ public class BeanShellHandler extends AbstractHandler {
                 log.severe(String.format("error evaluating: %s: %s", uri, msg));
                 log.throwing(getClass().getName(), "handleError", x);
             }
-            throw new ServletException("error evaluating " + uri + ": " + msg, x);
+            throw new HttpException("error evaluating " + uri + ": " + msg, x);
         }
     }
 
@@ -158,4 +169,5 @@ public class BeanShellHandler extends AbstractHandler {
     }
 
     // --------------------------------------------------------- Private methods
+
 }

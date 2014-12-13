@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Stefano Fornari.
+ * Copyright (C) 2012 Stefano Fornari.
  * All Rights Reserved.  No use, copying or distribution of this
  * work may be made except in accordance with a valid license
  * agreement from Stefano Fornari.  This notice must be
@@ -15,40 +15,23 @@
  */
 package ste.web.http;
 
-import java.util.HashMap;
-import org.apache.http.protocol.HttpContext;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
 
 /**
+ * The only purpose of this class is to simulate the case where the resource
+ * containing the default mime map cannot be found or there was an error in
+ * loading it.
  *
  * @author ste
  */
-public class HttpSessionContext 
-    extends HashMap<String, Object>
-    implements HttpContext {
-    
-    private HttpSession session;
+class MimeUtils2 extends MimeUtils {
 
     @Override
-    public Object getAttribute(final String id) {
-        return get(id);
+    protected Map<String, String> load(InputStream is) throws IOException {
+        throw new FileNotFoundException("MimeUtils2 does not find any resource");
     }
 
-    @Override
-    public void setAttribute(final String id, final Object obj) {
-        put(id, obj);
-    }
-
-    @Override
-    public Object removeAttribute(final String id) {
-        return remove(id);
-    }
-    
-    public HttpSession getSession() {
-        return session;
-    }
-    
-    public void setSession(final HttpSession session) {
-        this.session = session;
-    }
-    
 }

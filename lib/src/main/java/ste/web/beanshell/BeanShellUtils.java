@@ -31,28 +31,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Enumeration;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.apache.http.Header;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpCoreContext;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import static ste.web.beanshell.Constants.*;
-import ste.web.http.BasicHttpConnection;
-import ste.web.http.HttpSessionContext;
-import ste.web.http.QueryString;
 
 /**
  *
@@ -320,9 +304,7 @@ public class BeanShellUtils {
         return name.replaceAll("\\.", "_");
     }
     
-    // --------------------------------------------------------- private methods
-    
-    private static Object getJSONBody(final InputStream in) throws IOException {
+    public static Object getJSONBody(final InputStream in) throws IOException {
         Object o = null;
         try {
             BufferedInputStream is = new BufferedInputStream(in);
@@ -343,10 +325,6 @@ public class BeanShellUtils {
         }
         
         return o;
-    }
-    
-    private static InputStream getEntityInputStream(HttpRequest r) throws IOException {
-        return ((HttpEntityEnclosingRequest)r).getEntity().getContent();
     }
     
         

@@ -22,7 +22,7 @@
                 <goal>release:perform</goal>
             </goals>
             <properties>
-                <skipTests>true</skipTests>
+                <arguments>-DskipTests=true -Dmaven.javadoc.skip=true</arguments>
             </properties>
         </action>
     </actions>

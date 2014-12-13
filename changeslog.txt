@@ -1,3 +1,33 @@
+20141011
+- released v1.4.5
+- fixed issue #4 - FileHandler: query string not property handled
+
+20141004
+- added mutable BasicStatusLine
+
+20140921
+- released v1.4.4
+- added FileHandler handler
+
+20140920
+- released v1.4.3
+- bug fixing
+
+20140919
+- released v1.4.2
+- BeanShellHandler and VelocityHandler can handle urls that do not end with .bsh
+  and .v respectively
+
+20140918
+- released v1.4.1
+- added SequenceHttpRequestHandler
+- improved BeanShallHandler
+- improved VelocityHandler
+
+20140829
+- released v1.4.0
+- added velocity handler for httpcore
+
 2014015
 - renamed to webtoolkit, webtoolkitlib, webtoolkitwebapp
 - added support for apache httpcore

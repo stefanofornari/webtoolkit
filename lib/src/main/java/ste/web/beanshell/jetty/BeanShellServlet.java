@@ -20,7 +20,7 @@
  * MA 02110-1301 USA.
  */
 
-package ste.web.beanshell;
+package ste.web.beanshell.jetty;
 
 import java.io.*;
 import java.util.logging.Logger;
