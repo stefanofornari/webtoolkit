@@ -19,7 +19,7 @@
 
     <groupId>ste.web</groupId>
     <artifactId>webtoolkit</artifactId>
-    <version>1.4.8-SNAPSHOT</version>
+    <version>1.4.7</version>
     <packaging>pom</packaging>
 
     <name>WebToolkit</name>
@@ -73,7 +73,7 @@
     <scm>
         <connection>scm:git:git@github.com:stefanofornari/beanshellweb.git</connection>
         <url>http://github.com/stefanofornari/beanshellservlet/tree/master</url>
-        <tag>HEAD</tag>
+        <tag>webtoolkit-1.4.7</tag>
     </scm>
 
     <distributionManagement>
