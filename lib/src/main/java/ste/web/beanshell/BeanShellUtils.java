@@ -23,6 +23,7 @@ package ste.web.beanshell;
 
 import bsh.EvalError;
 import bsh.Interpreter;
+import bsh.NameSpace;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -183,6 +184,8 @@ public class BeanShellUtils {
      *
      * @param interpreter the beanshell interpreter
      * @param request the request
+     * 
+     * @throws bsh.EvalError
      *
      */
     public static void cleanup(
@@ -344,5 +347,10 @@ public class BeanShellUtils {
     
     private static InputStream getEntityInputStream(HttpRequest r) throws IOException {
         return ((HttpEntityEnclosingRequest)r).getEntity().getContent();
+    }
+    
+        
+    private static NameSpace getNameSpace(final HttpRequest request) {
+        return new NameSpace(NameSpace.JAVACODE, "request-" + request.hashCode());
     }
 }

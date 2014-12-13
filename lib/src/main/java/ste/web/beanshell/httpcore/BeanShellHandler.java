@@ -23,6 +23,7 @@ package ste.web.beanshell.httpcore;
 
 import bsh.EvalError;
 import bsh.Interpreter;
+import bsh.NameSpace;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -51,8 +52,6 @@ public class BeanShellHandler implements HttpRequestHandler {
     
     // ------------------------------------------------------------ Private data
 
-    private Interpreter bsh;
-
     private String controllersFolder;
     private String appsRoot;
 
@@ -65,11 +64,9 @@ public class BeanShellHandler implements HttpRequestHandler {
     }
     
     public BeanShellHandler(final String appsRoot) {
-        this.bsh = null;
         this.controllersFolder = null;
         this.appsRoot = appsRoot;
         this.log = Logger.getLogger(LOG_NAME);
-        this.bsh = new Interpreter();
     }
 
     // ---------------------------------------------------------- Public methods
@@ -93,6 +90,8 @@ public class BeanShellHandler implements HttpRequestHandler {
     public void handle(HttpRequest  request,
                        HttpResponse response,
                        HttpContext  context) throws HttpException, IOException {
+        
+        Interpreter bsh = new Interpreter();
         
         String uri = request.getRequestLine().getUri();
         if (log.isLoggable(Level.FINE)) {
@@ -149,15 +148,6 @@ public class BeanShellHandler implements HttpRequestHandler {
             }
             throw new HttpException("error evaluating " + uri + ": " + msg, x);
         }
-    }
-
-    /**
-     * Returns the interpreter used by this handler
-     *
-     * @return the interpreter used by this handler
-     */
-    public Interpreter getInterpreter() {
-        return bsh;
     }
 
     // --------------------------------------------------------- Private methods

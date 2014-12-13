@@ -1,0 +1,2 @@
+view = Thread.currentThread().name;
+Thread.sleep(new Random().nextInt(250));

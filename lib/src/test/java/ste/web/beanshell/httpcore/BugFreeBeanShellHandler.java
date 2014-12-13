@@ -25,7 +25,6 @@ import bsh.EvalError;
 import bsh.Interpreter;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import org.apache.http.HttpException;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
@@ -48,7 +47,6 @@ import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI04;
 import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI05;
 import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI06;
 import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI07;
-import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI09;
 import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI10;
 import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI_PARAMETERS;
 import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_VALUE1;
@@ -63,7 +61,6 @@ import static ste.web.beanshell.Constants.VAR_SESSION;
 import static ste.web.beanshell.Constants.VAR_SOURCE;
 import ste.web.http.BasicHttpConnection;
 import ste.web.http.HttpSessionContext;
-import ste.web.http.QueryString;
 import ste.xtest.net.TestSocket;
 
 
@@ -103,17 +100,12 @@ public class BugFreeBeanShellHandler {
     }
 
     @Test
-    public void interpreterSetUp() throws Exception {
-        then(new BeanShellHandler().getInterpreter()).isNotNull();
-    }
-
-    @Test
     public void execScriptDefaultDirs() throws Exception {
         handler.handle(get(TEST_URI01), response, context);
-        then(handler.getInterpreter().get("first")).isNotNull();
+        then(context.get("first")).isNotNull();
 
         handler.handle(get(TEST_URI02), response, context);
-        then(handler.getInterpreter().get("second")).isNotNull();
+        then(context.get("second")).isNotNull();
     }
 
     @Test
@@ -121,10 +113,10 @@ public class BugFreeBeanShellHandler {
         handler.setControllersFolder("controllers");
 
         handler.handle(get(TEST_URI03), response, context);
-        then(handler.getInterpreter().get("firstcontroller")).isNotNull();
+        then(context.get("firstcontroller")).isNotNull();
 
         handler.handle(get(TEST_URI04), response, context);
-        then(handler.getInterpreter().get("secondcontroller")).isNotNull();
+        then(context.get("secondcontroller")).isNotNull();
     }
 
     @Test
@@ -173,21 +165,19 @@ public class BugFreeBeanShellHandler {
         BasicHttpRequest request = get(TEST_URI01);
         handler.handle(request, response, context);
 
-        Interpreter i = handler.getInterpreter();
-        then(i.get(VAR_REQUEST)).isSameAs(request);
-        then(i.get(VAR_RESPONSE)).isSameAs(response);
-        then(i.get(VAR_SESSION)).isSameAs(context);
-        then(i.get(VAR_LOG)).isNotNull();
-        then(i.get(VAR_OUT)).isNotNull();
+        then(context.get(VAR_REQUEST)).isSameAs(request);
+        then(context.get(VAR_RESPONSE)).isSameAs(response);
+        then(context.get(VAR_SESSION)).isSameAs(context);
+        then(context.get(VAR_LOG)).isNotNull();
+        then(context.get(VAR_OUT)).isNotNull();
         then(new File(ROOT, TEST_URI01).getAbsolutePath())
-            .isEqualTo(handler.getInterpreter().get(VAR_SOURCE));
+            .isEqualTo(context.get(VAR_SOURCE));
     }
 
     @Test
     public void returnView() throws Exception {
         handler.handle(get(TEST_URI01), response, context);
-        Interpreter i = handler.getInterpreter();
-        then(i.get(ATTR_VIEW)).isEqualTo("main.v");
+        then(context.get(ATTR_VIEW)).isEqualTo("main.v");
     }
 
     @Test
@@ -203,22 +193,58 @@ public class BugFreeBeanShellHandler {
     @Test
     public void requestAttributes() throws Exception {
         handler.handle(get(TEST_URI01), response, context);
-        Interpreter i = handler.getInterpreter();
         for(String name: context.keySet()) {
             System.out.println("key: " + name + ", value: " + context.getAttribute(name));
-            then(i.get(BeanShellUtils.normalizeVariableName(name))).isEqualTo(context.getAttribute(name));
+            then(context.get(BeanShellUtils.normalizeVariableName(name))).isEqualTo(context.getAttribute(name));
         }
     }
 
     @Test
     public void variablesAttribute() throws Exception {
         handler.handle(get(TEST_URI01), response, context);
-        Interpreter i = handler.getInterpreter();
         then((boolean)context.getAttribute("first")).isTrue();
         then(context.getAttribute("something")).isNull(); // just to make sure it
                                                           // does not always return
                                                           // the same
     }
+    
+    @Test
+    public void runningMultipleThreadInDifferentContexts() throws Exception {
+        final HttpSessionContext CTX1 = new HttpSessionContext(); 
+        final HttpSessionContext CTX2 = new HttpSessionContext();
+        
+        CTX1.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
+        CTX2.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
+        
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    handler.handle(get("/multithreading.bsh"), response, CTX1);
+                } catch (Exception x) {
+                    x.printStackTrace();
+                }
+            }
+        });
+        
+        Thread t2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    handler.handle(get("/multithreading.bsh"), response, CTX2);
+                } catch (Exception x) {
+                    x.printStackTrace();
+                }
+            }
+        });
+        
+        t1.start(); t2.start();
+        t1.join(); t2.join();
+        
+        then(CTX1.get("view")).isEqualTo(t1.getName());
+        then(CTX2.get("view")).isEqualTo(t2.getName());
+    }
+    
 
     // --------------------------------------------------------- Private methods
     
