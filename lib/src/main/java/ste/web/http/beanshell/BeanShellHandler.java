@@ -40,7 +40,27 @@ import static ste.web.beanshell.Constants.*;
 import ste.web.http.HttpSessionContext;
 
 /**
- *
+ * Executes the bsh script specified by the URL. The script is the controller
+ * and shall set the view that should be rendered after the execution of the 
+ * script in the bsh variable <i>view</i>.
+ * 
+ * The lookup of the scripts and views are controlled by the following pattern:
+ * 
+ * <pre>
+ *   {context}{controllers-prefix}/{script-pathname}
+ *   {context}{views-prefix}/{jsp-pathname}
+ * </pre>
+ * 
+ * For example, if context=/myapp, controllers-prefix=c and views-prefix=v,
+ * the URL http://myserver:8080/myapp/mycontroller.bsh will read the script
+ * {webroot}/myapp/c/mycontroller.bsh. If the controller sets <i>view</i>
+ * to myview.jsp, the request is forwarded to http://myserver:8080/myapp/v/myview.jsp
+ * 
+ * <i>controllers-prefix</i> and <i>views-prefix</i> defauult to "".
+ * 
+ * In addition to scripts Beanshell can be extended with commands, which must be
+ * located somewhere under the classpath.
+ * 
  * @author ste
  */
 public class BeanShellHandler implements HttpRequestHandler {
