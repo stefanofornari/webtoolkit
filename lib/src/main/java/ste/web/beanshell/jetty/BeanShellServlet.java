@@ -42,7 +42,7 @@ import static ste.web.beanshell.Constants.*;
  * The lookup of the scripts and views are controlled by the following pattern:
  * <pre>
  *   {context}{controllers-prefix}/{script-pathname}
- *   {context}{vies-prefix}/{jsp-pathname}
+ *   {context}{views-prefix}/{jsp-pathname}
  * </pre>
  * For example, if context=/myapp, controllers-prefix=c and views-prefix=v,
  * the URL http://myserver:8080/myapp/mycontroller.bsh will read the script
