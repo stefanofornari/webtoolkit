@@ -22,7 +22,6 @@
 package ste.web.http.beanshell;
 
 import bsh.EvalError;
-import bsh.Interpreter;
 import java.io.File;
 import java.io.IOException;
 import org.apache.http.HttpException;
