@@ -49,7 +49,7 @@ import ste.web.http.QueryString;
  */
 public class BugFreeVelocityHandler {
     
-    public static final String ROOT = "src/test/resources";
+    public static final String ROOT = "src/test/webroot";
 
     public static final String TEST_URL_PARAM1 = "p_one";
     public static final String TEST_URL_PARAM2 = "p_two";

@@ -1,0 +1,5 @@
+parameters = p_one + "," + p_two + "," + p_three;
+
+p1 = p_one;
+p2 = p_two;
+p3 = p_three;

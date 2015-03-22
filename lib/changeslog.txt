@@ -1,3 +1,6 @@
+20150215
+- added a new ApiHandler to specifically implement RESTful APIs
+
 20141213
 - made BeanShallHandler thread-safe
 - released v1.4.7

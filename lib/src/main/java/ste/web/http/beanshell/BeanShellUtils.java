@@ -138,7 +138,7 @@ public class BeanShellUtils extends ste.web.beanshell.BeanShellUtils {
     }
     
     /**
-     * Sets all variables available in the interpreter as request attributes.
+     * Sets all variables available in the interpreter as session attributes.
      *
      * @param i the interpreter - NOT NULL
      * @param c the request context - NOT NULL

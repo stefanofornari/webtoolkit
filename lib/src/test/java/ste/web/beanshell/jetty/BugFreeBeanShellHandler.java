@@ -87,7 +87,7 @@ public class BugFreeBeanShellHandler {
         response = new TestResponse();
         handler = new BeanShellHandler();
         server = new Server();
-        server.setAttribute(ATTR_APP_ROOT, "src/test/resources");
+        server.setAttribute(ATTR_APP_ROOT, "src/test/webroot");
 
         handler.setServer(server);
         simulateStart(handler);

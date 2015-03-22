@@ -49,7 +49,7 @@ import ste.xtest.net.TestSocket;
 public class BugFreeBeanShellHandler {
 
     private static final String GET = "GET";
-    private static final String ROOT = "src/test/resources";
+    private static final String ROOT = "src/test/webroot";
 
     protected BasicHttpRequest request;
     protected BasicHttpResponse response;

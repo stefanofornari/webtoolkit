@@ -109,7 +109,7 @@ public class BugFreeBeanShellUtils {
     public void getScript() throws Exception {
         then(
             BeanShellUtils.getScript(
-                new File("src/test/resources/firstlevelscript.bsh")
+                new File("src/test/webroot/firstlevelscript.bsh")
             )
         ).contains("first = true;");
     }
@@ -117,7 +117,7 @@ public class BugFreeBeanShellUtils {
     @Test
     public void getNotExistingScript() throws Exception {
         try {
-            BeanShellUtils.getScript(new File("src/test/resources/notexistingscript.bsh"));
+            BeanShellUtils.getScript(new File("src/test/webroot/notexistingscript.bsh"));
             fail("file not found exception expected");
         } catch (FileNotFoundException e) {
             //

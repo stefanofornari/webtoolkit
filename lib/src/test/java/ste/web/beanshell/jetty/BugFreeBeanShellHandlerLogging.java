@@ -78,13 +78,13 @@ public class BugFreeBeanShellHandlerLogging extends BugFreeBeanShellHandler {
         List<String> messages = H.getMessages();
         System.out.println("messages: " + messages);
         assertTrue(messages.contains("serving " + TEST_URI01));
-        assertTrue(messages.contains("script path: " + new File("src/test/resources", TEST_URI01).getAbsolutePath()));
+        assertTrue(messages.contains("script path: " + new File("src/test/webroot", TEST_URI01).getAbsolutePath()));
         assertTrue(messages.contains("view: main.v"));
 
         handler.handle(TEST_URI02, request, request, response);
         messages = H.getMessages();
         assertTrue(messages.contains("serving " + TEST_URI02));
-        assertTrue(messages.contains("script path: " + new File("src/test/resources", TEST_URI02).getAbsolutePath()));
+        assertTrue(messages.contains("script path: " + new File("src/test/webroot", TEST_URI02).getAbsolutePath()));
         assertTrue(messages.contains("view: secondlevelmain.v"));
     }
 

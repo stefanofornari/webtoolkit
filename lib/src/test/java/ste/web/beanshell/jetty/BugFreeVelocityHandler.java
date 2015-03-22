@@ -86,7 +86,7 @@ public class BugFreeVelocityHandler {
 
         handler = new VelocityHandler();
         server = new Server();
-        server.setAttribute(ATTR_APP_ROOT, "src/test/resources");
+        server.setAttribute(ATTR_APP_ROOT, "src/test/webroot");
 
         handler.setServer(server);
         simulateStart(handler);
