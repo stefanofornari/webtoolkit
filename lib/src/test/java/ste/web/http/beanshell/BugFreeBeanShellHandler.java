@@ -142,6 +142,8 @@ public class BugFreeBeanShellHandler {
             // OK
             //
             then(x.getCause()).isInstanceOf(EvalError.class);
+            EvalError cause = (EvalError)x.getCause();
+            then(cause.getCause()).isInstanceOf(IOException.class);
         } catch (Exception x) {
             fail(TEST_URI07 + " error shall throw a HttpException instead of " + x);
         }

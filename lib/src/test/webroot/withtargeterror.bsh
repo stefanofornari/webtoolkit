@@ -1,1 +1,1 @@
-throw new Exception("target exception");
+new java.io.FileInputStream("/none");

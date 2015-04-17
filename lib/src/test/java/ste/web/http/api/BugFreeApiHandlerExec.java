@@ -22,6 +22,7 @@
 package ste.web.http.api;
 
 import bsh.EvalError;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import org.apache.http.HttpException;
@@ -30,6 +31,7 @@ import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.HttpCoreContext;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
+import org.json.JSONObject;
 import org.junit.Test;
 import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_QUERY_STRING;
 import static ste.web.beanshell.Constants.*;
@@ -43,10 +45,12 @@ import ste.xtest.reflect.PrivateAccess;
  */
 public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
     
-    public static final String TEST_URI_WITHEVALERROR = "/api/get/withevalerror";
-    public static final String TEST_URI_WITHTARGETERROR = "/api/get/withtargeterror";
-    public static final String TEST_URI_ITEMS = "/api/get/items";
-    public static final String TEST_URI_PARAMETERS = "/api/get/parameters?" + TEST_QUERY_STRING;
+    public static final String TEST_URI_WITHEVALERROR = "/api/app/get/withevalerror";
+    public static final String TEST_URI_WITHTARGETERROR = "/api/app/get/withtargeterror";
+    public static final String TEST_URI_ITEMS1 = "/api/store/get/items";
+    public static final String TEST_URI_ITEMS2 = "/api/store/get/items2";
+    public static final String TEST_URI_ITEMS3 = "/api/store/get/items3";
+    public static final String TEST_URI_PARAMETERS = "/api/app/get/parameters?" + TEST_QUERY_STRING;
     
     public BugFreeApiHandlerExec() {
         super("src/test/apiroot");
@@ -87,7 +91,7 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
 
     @Test
     public void set_main_variables() throws Exception {
-        BasicHttpRequest request = request(TEST_URI_ITEMS);
+        BasicHttpRequest request = request(TEST_URI_ITEMS1);
         handler.handle(request, response, context);
 
         then(context.get(VAR_REQUEST)).isSameAs(request);
@@ -95,14 +99,14 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
         then(context.get(VAR_SESSION)).isSameAs(context);
         then(context.get(VAR_LOG)).isNotNull();
         then(context.get(VAR_OUT)).isNotNull();
-        then(new File("src/test/apiroot/items/items.bsh").getAbsolutePath())
+        then(new File("src/test/apiroot/store/items/items.bsh").getAbsolutePath())
                 .isEqualTo(context.get(VAR_SOURCE));
     }
 
 
     @Test
     public void request_attributes() throws Exception {
-        handler.handle(request(TEST_URI_ITEMS), response, context);
+        handler.handle(request(TEST_URI_ITEMS1), response, context);
         for (String name : context.keySet()) {
             System.out.println("key: " + name + ", value: " + context.getAttribute(name));
             then(context.get(BeanShellUtils.normalizeVariableName(name))).isEqualTo(context.getAttribute(name));
@@ -111,7 +115,7 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
 
     @Test
     public void variables_attribute() throws Exception {
-        handler.handle(request(TEST_URI_ITEMS), response, context);
+        handler.handle(request(TEST_URI_ITEMS1), response, context);
         then((boolean) context.getAttribute("first")).isTrue();
         // just to make sure it does not always return the same
         then(context.getAttribute("something")).isNull(); 
@@ -135,7 +139,7 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
             @Override
             public void run() {
                 try {
-                    handler.handle(request("/api/get/multithreading"), response, CTX1);
+                    handler.handle(request("/api/app/get/multithreading"), response, CTX1);
                 } catch (Exception x) {
                     x.printStackTrace();
                 }
@@ -145,7 +149,7 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
             @Override
             public void run() {
                 try {
-                    handler.handle(request("/api/get/multithreading"), response, CTX2);
+                    handler.handle(request("/api/app/get/multithreading"), response, CTX2);
                 } catch (Exception x) {
                     x.printStackTrace();
                 }
@@ -162,7 +166,7 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
     @Test
     public void content_type_is_json_if_not_already_set() throws Exception {
         response.setEntity(new BasicHttpEntity());
-        handler.handle(request(TEST_URI_ITEMS), response, context);
+        handler.handle(request(TEST_URI_ITEMS1), response, context);
         then(response.getEntity().getContentType().getValue()).isEqualTo("application/json");
     }
     
@@ -171,8 +175,41 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
         BasicHttpEntity e = new BasicHttpEntity();
         e.setContentType("text/plain");
         response.setEntity(e);
-        handler.handle(request(TEST_URI_ITEMS), response, context);
+        handler.handle(request(TEST_URI_ITEMS1), response, context);
         then(response.getEntity().getContentType().getValue()).isEqualTo("text/plain");
+    }
+    
+    @Test
+    public void return_content_in_the_body_as_string() throws Exception {
+        handler.handle(request(TEST_URI_ITEMS1), response, context);
+        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        response.getEntity().writeTo(baos);
+        
+        JSONObject o = new JSONObject(baos.toString());
+        then(o.getString("one")).isEqualTo("111");
+        then(o.getString("two")).isEqualTo("222");
+        then(response.getEntity().getContentLength()).isEqualTo(24);
+    }
+    
+    @Test
+    public void return_content_in_the_body_as_json_object() throws Exception {
+        handler.handle(request(TEST_URI_ITEMS2), response, context);
+        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        response.getEntity().writeTo(baos);
+        
+        JSONObject o = new JSONObject(baos.toString());
+        then(o.getString("one")).isEqualTo("111");
+        then(o.getString("two")).isEqualTo("222");
+        then(response.getEntity().getContentLength()).isEqualTo(25);
+    }
+    
+    @Test
+    public void return_no_content_if_no_body() throws Exception {
+        handler.handle(request(TEST_URI_ITEMS3), response, context);
+        
+        then(response.getEntity().getContentLength()).isZero();
     }
 
     // --------------------------------------------------------- Private methods
