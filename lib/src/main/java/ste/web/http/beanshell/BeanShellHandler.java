@@ -167,7 +167,7 @@ public class BeanShellHandler implements HttpRequestHandler {
             response.setStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_FOUND, "Script " + scriptFile + " not found.");
         } catch (EvalError x) {
             String msg = x.getMessage();
-
+            
             if (log.isLoggable(Level.SEVERE)) {
                 log.severe(String.format("error evaluating: %s: %s", uri, msg));
                 log.throwing(getClass().getName(), "handleError", x);

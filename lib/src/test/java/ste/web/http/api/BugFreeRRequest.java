@@ -36,13 +36,14 @@ import org.junit.Test;
  */
 public class BugFreeRRequest {
     
-    public static String TEST_API_URI01 = "/api/save/items/10";
-    public static String TEST_API_URI02 = "/api/get/items/10";
-    public static String TEST_API_URI03 = "/api/get/none";
-    public static String TEST_API_URI04 = "/api/get/items";
-    public static String TEST_API_URI05 = "/api/get/items/10/sets/5/subsets/2";
-    public static String TEST_API_URI06 = "/api";
-    public static String TEST_API_URI07 = "/api/get";
+    public static String TEST_API_URI01 = "/api/store/save/items/10";
+    public static String TEST_API_URI02 = "/api/store/get/items/10";
+    public static String TEST_API_URI03 = "/api/store/get/none";
+    public static String TEST_API_URI04 = "/api/store/get/items";
+    public static String TEST_API_URI05 = "/api/store/get/items/10/sets/5/subsets/2";
+    public static String TEST_API_URI06 = "/api/notepad/get/notes/10/objects/5/lines/2";
+    public static String TEST_API_URI07 = "/api/store";
+    public static String TEST_API_URI08 = "/api/store/get";
     
     @Test
     public void constructors_with_null() throws Throwable {
@@ -65,16 +66,18 @@ public class BugFreeRRequest {
     public void constructor_with_string() throws Throwable {
         RRequest r = new RRequest(TEST_API_URI05);
         
+        then(r.getApplication()).isEqualTo("store");
         then(r.getAction()).isEqualTo("get");
         then(r.getResource()).containsExactly("items", "10", "sets", "5", "subsets", "2");
     }
     
     @Test
     public void constructor_with_request_line() throws Throwable {
-        RRequest r = new RRequest(new BasicRequestLine("POST", TEST_API_URI05, HttpVersion.HTTP_1_1));
+        RRequest r = new RRequest(new BasicRequestLine("POST", TEST_API_URI06, HttpVersion.HTTP_1_1));
         
+        then(r.getApplication()).isEqualTo("notepad");
         then(r.getAction()).isEqualTo("get");
-        then(r.getResource()).containsExactly("items", "10", "sets", "5", "subsets", "2");
+        then(r.getResource()).containsExactly("notes", "10", "objects", "5", "lines", "2");
     }
     
     @Test
@@ -101,25 +104,24 @@ public class BugFreeRRequest {
     @Test
     public void invalid_restful_request() throws Exception {
         try {
-            RRequest req = new RRequest(TEST_API_URI06);
+            RRequest req = new RRequest(TEST_API_URI07);
             fail("invalid request not checked");
         } catch (URISyntaxException x) {
             then(x)
                 .hasMessageContaining("invalid rest request")
-                .hasMessageContaining(TEST_API_URI06)
-                .hasMessageContaining("/api/<action>/<resource>");
+                .hasMessageContaining(TEST_API_URI07)
+                .hasMessageContaining("/api/<application>/<action>/<resource>");
         }
         
         try {
-            RRequest r = new RRequest(TEST_API_URI07);
+            RRequest r = new RRequest(TEST_API_URI08);
             fail("invalid request not checked");
         } catch (URISyntaxException x) {
             then(x)
                 .hasMessageContaining("invalid rest request")
-                .hasMessageContaining(TEST_API_URI06)
-                .hasMessageContaining("/api/<action>/<resource>");
-        }
-            
+                .hasMessageContaining(TEST_API_URI07)
+                .hasMessageContaining("/api/<application>/<action>/<resource>");
+        }  
     }
     
     @Test

@@ -74,6 +74,7 @@ public class BugFreeBeanShellUtils {
     public static final String TEST_URI08 = "/nobsh";
     public static final String TEST_URI09 = "/parameters.bsh";
     public static final String TEST_URI10 = "/missingview.bsh";
+    public static final String TEST_URI11 = "/withcauseerror.bsh";
     
     public static final String TEST_QUERY_STRING = TEST_URL_PARAM1
                                                  + "="

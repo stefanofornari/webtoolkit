@@ -23,6 +23,7 @@ package ste.web.http.api;
 
 import bsh.EvalError;
 import bsh.Interpreter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -35,7 +36,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
-import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import ste.web.http.HttpSessionContext;
@@ -89,7 +90,7 @@ public class ApiHandler  implements HttpRequestHandler {
                 log.fine(String.format("serving %s", rr.getPath()));
             }
 
-            scriptFile = new File(apiroot, getHandlerScript(rr.getHandler()));
+            scriptFile = new File(apiroot, getHandlerScript(rr));
 
             if (log.isLoggable(Level.FINE)) {
                 log.fine(String.format("script path: %s", scriptFile.getAbsolutePath()));
@@ -101,14 +102,22 @@ public class ApiHandler  implements HttpRequestHandler {
             bsh.set(VAR_RREQUEST, rr);
             bsh.eval(BeanShellUtils.getScript(scriptFile));
             
-            //
-            // ifthe content type has not been set, set it now
-            //
-            AbstractHttpEntity e = (AbstractHttpEntity)response.getEntity();
+            Object body = bsh.get(rr.getHandler());
             
-            if ((e != null) && (e.getContentType() == null)) {
+            BasicHttpEntity e = (BasicHttpEntity)response.getEntity();
+            if (body != null) {
+                String bodyString = String.valueOf(body);
+                ByteArrayInputStream is = new ByteArrayInputStream(bodyString.getBytes());
+                e.setContent(is);
+                e.setContentLength(bodyString.length());
+            } else {
+                e.setContentLength(0);
+            }
+            
+            if (e.getContentType() == null) {
                 e.setContentType("application/json");
             }
+            
 
             BeanShellUtils.cleanup(bsh, request);
             BeanShellUtils.setVariablesAttributes(bsh, context);
@@ -139,8 +148,8 @@ public class ApiHandler  implements HttpRequestHandler {
     
     // --------------------------------------------------------- private methods
     
-    private String getHandlerScript(final String handler) {
-        return handler + '/' + handler + ".bsh";
+    private String getHandlerScript(RRequest rr) {
+        return rr.getApplication() + '/' + rr.getHandler() + '/' + rr.getHandler() + ".bsh";
     }
     
 }

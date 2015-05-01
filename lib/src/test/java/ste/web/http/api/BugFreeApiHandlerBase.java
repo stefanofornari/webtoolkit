@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
@@ -69,6 +70,7 @@ public abstract class BugFreeApiHandlerBase {
         response = new BasicHttpResponse(
                 new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK")
         );
+        response.setEntity(new BasicHttpEntity());
         handler = new ApiHandler(new File(ROOT).getAbsolutePath());
     }
 

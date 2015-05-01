@@ -1,12 +1,21 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2015 Stefano Fornari.
+ * All Rights Reserved.  No use, copying or distribution of this
+ * work may be made except in accordance with a valid license
+ * agreement from Stefano Fornari.  This notice must be
+ * included on all copies, modifications and derivatives of this
+ * work.
+ *
+ * STEFANO FORNARI MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY
+ * OF THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT. STEFANO FORNARI SHALL NOT BE LIABLE FOR ANY
+ * DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
+ * THIS SOFTWARE OR ITS DERIVATIVES.
  */
 package ste.web.http.api;
 
 import java.io.File;
-import java.util.List;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.message.BasicHttpRequest;
@@ -14,10 +23,10 @@ import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;
 import org.junit.Test;
 import static ste.web.http.api.BugFreeRRequest.*;
-import static ste.web.http.api.Constants.VAR_RREQUEST;
 
 /**
  * @TODO: limit to POST only?
+ * @TODO: source the script and then invoke a method with the same name of the action
  * 
  * @author ste
  */
@@ -37,7 +46,7 @@ public class BugFreeApiHandlerURI extends BugFreeApiHandlerBase {
     /**
      * URI syntax:
      * <code>
-     *   /api/{action}/{handler}[/{resource}]
+     *   /api/{application}/{action}/{handler}[/{resource}]
      * </code>
      */
     @Test
@@ -47,14 +56,14 @@ public class BugFreeApiHandlerURI extends BugFreeApiHandlerBase {
         then(context.getAttribute("action")).isEqualTo("save");
         handler.handle(request(TEST_API_URI02), response, context);
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
-        then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+        then(context.getAttribute("action")).isEqualTo("get");
     }
     
     @Test
     public void script_not_found() throws Exception {
         handler.handle(request(TEST_API_URI03), response, context);
         then(HttpStatus.SC_NOT_FOUND).isEqualTo(response.getStatusLine().getStatusCode());
-        then(response.getStatusLine().getReasonPhrase()).contains(new File(ROOT, "none/none.bsh").getAbsolutePath());
+        then(response.getStatusLine().getReasonPhrase()).contains(new File(ROOT, "store/none/none.bsh").getAbsolutePath());
     }
     
     @Test
@@ -79,12 +88,12 @@ public class BugFreeApiHandlerURI extends BugFreeApiHandlerBase {
     
     @Test
     public void invalid_restful_request() throws Exception {
-        handler.handle(request(TEST_API_URI06), response, context);
+        handler.handle(request(TEST_API_URI07), response, context);
         then(HttpStatus.SC_BAD_REQUEST).isEqualTo(response.getStatusLine().getStatusCode());
         then(response.getStatusLine().getReasonPhrase())
             .contains("invalid rest request")
-            .contains(TEST_API_URI06)
-            .contains(StringEscapeUtils.escapeHtml4("/api/<action>/<resource>"));
+            .contains(TEST_API_URI07)
+            .contains(StringEscapeUtils.escapeHtml4("/api/<application>/<action>/<resource>"));
         
     }
     

@@ -31,8 +31,7 @@ import org.apache.http.message.BasicRequestLine;
 import org.json.JSONObject;
 
 /**
- * 
- * @TODO: proper parsing of the URI elements
+ *
  *
  * @author ste
  */
@@ -40,6 +39,7 @@ public class RRequest {
     
     private URI uri;
     private final String handler;
+    private final String application;
     private final String action;
     private final String[] resource;
     private final JSONObject body;
@@ -61,16 +61,17 @@ public class RRequest {
         uri = new URI(request.getUri());
         String[] elements = StringUtils.split(uri.getPath(),'/');
         
-        if (elements.length < 3) {
+        if (elements.length < 4) {
             throw new URISyntaxException(
                 uri.toString(),
-                "invalid rest request; a valid rest url shall follow the syntax /api/<action>/<resource>"
+                "invalid rest request; a valid rest url shall follow the syntax /api/<application>/<action>/<resource>"
             );
         }
-        action = elements[1];
-        handler = elements[2];
+        application = elements[1];
+             action = elements[2];
+            handler = elements[3];
         
-        resource = Arrays.copyOfRange(elements, 2, elements.length);
+        resource = Arrays.copyOfRange(elements, 3, elements.length);
         
         this.body = body;
     }
@@ -117,6 +118,11 @@ public class RRequest {
     public String getPath() {
         return uri.getPath();
         
+    }
+    
+    
+    public String getApplication() {
+        return application;
     }
     
     public String getAction() {
