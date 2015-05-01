@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import org.junit.Before;
+import ste.web.beanshell.BeanShellError;
 import ste.web.beanshell.BeanShellUtils;
 import static ste.web.beanshell.BugFreeBeanShellUtils.*;
 import static ste.web.beanshell.Constants.*;
@@ -126,12 +127,12 @@ public class BugFreeBeanShellHandler {
     }
 
     @Test
-    public void scriptError() throws IOException {
+    public void scriptError() throws Exception {
         try {
             handler.handle(get(TEST_URI06), response, context);
             fail(TEST_URI06 + " error shall throw a HttpException");
         } catch (HttpException x) {
-            then(x.getCause()).isInstanceOf(EvalError.class);
+            then(x.getCause()).isInstanceOf(BeanShellError.class);
         }
 
         try {
@@ -141,11 +142,9 @@ public class BugFreeBeanShellHandler {
             //
             // OK
             //
-            then(x.getCause()).isInstanceOf(EvalError.class);
-            EvalError cause = (EvalError)x.getCause();
+            then(x.getCause()).isInstanceOf(BeanShellError.class);
+            BeanShellError cause = (BeanShellError)x.getCause();
             then(cause.getCause()).isInstanceOf(IOException.class);
-        } catch (Exception x) {
-            fail(TEST_URI07 + " error shall throw a HttpException instead of " + x);
         }
     }
 

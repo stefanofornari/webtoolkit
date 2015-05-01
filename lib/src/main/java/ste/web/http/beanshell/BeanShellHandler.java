@@ -35,6 +35,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import ste.web.beanshell.BeanShellError;
 
 import static ste.web.beanshell.Constants.*;
 import ste.web.http.HttpSessionContext;
@@ -172,7 +173,7 @@ public class BeanShellHandler implements HttpRequestHandler {
                 log.severe(String.format("error evaluating: %s: %s", uri, msg));
                 log.throwing(getClass().getName(), "handleError", x);
             }
-            throw new HttpException("error evaluating " + uri + ": " + msg, x);
+            throw new HttpException("error evaluating " + uri + ": " + msg, new BeanShellError(x));
         }
     }
 
