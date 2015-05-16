@@ -3,6 +3,4 @@ import java.io.*;
 json = String.valueOf(new org.json.JSONObject("{one: '111', two: 'papà'}"));
 utf8 = json.getBytes();
 
-print(utf8.length);
-print(json.length());
 items4 = json;
