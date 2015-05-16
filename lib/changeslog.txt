@@ -1,5 +1,6 @@
 20150516
 - fixed an issue with utf-8 characters
+- released v1.5.1
 
 20150501
 -  changed the RESTful API syntax from /api/{action}/{handler}[/{resource}]
