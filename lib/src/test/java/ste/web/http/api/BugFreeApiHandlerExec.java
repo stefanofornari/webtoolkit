@@ -25,6 +25,7 @@ import bsh.EvalError;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import org.apache.http.HttpException;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHttpRequest;
@@ -50,6 +51,7 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
     public static final String TEST_URI_ITEMS1 = "/api/store/get/items";
     public static final String TEST_URI_ITEMS2 = "/api/store/get/items2";
     public static final String TEST_URI_ITEMS3 = "/api/store/get/items3";
+    public static final String TEST_URI_ITEMS4 = "/api/store/get/items4";
     public static final String TEST_URI_PARAMETERS = "/api/app/get/parameters?" + TEST_QUERY_STRING;
     
     public BugFreeApiHandlerExec() {
@@ -211,6 +213,24 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
         
         then(response.getEntity().getContentLength()).isZero();
     }
-
+    
+    @Test
+    public void utf8_support() throws Exception {
+        handler.handle(request(TEST_URI_ITEMS4), response, context);
+        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        response.getEntity().writeTo(baos);
+        
+        //
+        // The issue with non-ascii characters is that the actual number of 
+        // bytes to transfer may be different be the number of characters 
+        // returned by String.length()
+        //
+        byte[] bytes = baos.toByteArray();
+        String json = new String(Arrays.copyOf(bytes, (int)response.getEntity().getContentLength()));
+        JSONObject o = new JSONObject(json);
+        then(o.getString("two")).isEqualTo("papà");
+    }
+        
     // --------------------------------------------------------- Private methods
 }

@@ -107,9 +107,10 @@ public class ApiHandler  implements HttpRequestHandler {
             BasicHttpEntity e = (BasicHttpEntity)response.getEntity();
             if (body != null) {
                 String bodyString = String.valueOf(body);
-                ByteArrayInputStream is = new ByteArrayInputStream(bodyString.getBytes());
+                byte[] buf = bodyString.getBytes();
+                ByteArrayInputStream is = new ByteArrayInputStream(buf);
                 e.setContent(is);
-                e.setContentLength(bodyString.length());
+                e.setContentLength(buf.length);
             } else {
                 e.setContentLength(0);
             }
@@ -117,7 +118,6 @@ public class ApiHandler  implements HttpRequestHandler {
             if (e.getContentType() == null) {
                 e.setContentType("application/json");
             }
-            
 
             BeanShellUtils.cleanup(bsh, request);
             BeanShellUtils.setVariablesAttributes(bsh, context);

@@ -1,3 +1,6 @@
+20150516
+- fixed an issue with utf-8 characters
+
 20150501
 -  changed the RESTful API syntax from /api/{action}/{handler}[/{resource}]
    to  /api/{application}/{action}/{handler}[/{resource}]
