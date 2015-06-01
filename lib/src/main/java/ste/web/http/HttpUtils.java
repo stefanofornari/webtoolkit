@@ -37,13 +37,13 @@ import ste.web.http.message.BasicStatusLine;
  * @author ste
  */
 public class HttpUtils {
-    public static BasicHttpResponse getBasicResponse(final boolean withEntiry) {
+    public static BasicHttpResponse getBasicResponse(final boolean withEntity) {
         BasicHttpResponse response = new BasicHttpResponse(
             HttpVersion.HTTP_1_1, HttpStatus.SC_OK, 
             EnglishReasonPhraseCatalog.INSTANCE.getReason(HttpStatus.SC_OK, Locale.ENGLISH)
         );
         
-        if (withEntiry) {
+        if (withEntity) {
             response.setEntity(new BasicHttpEntity());
         }
         
