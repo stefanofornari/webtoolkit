@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -135,13 +135,13 @@ public class ApiHandler  implements HttpRequestHandler {
             response.setStatusLine(
                 HttpVersion.HTTP_1_1, 
                 HttpStatus.SC_BAD_REQUEST, 
-                StringEscapeUtils.escapeHtml(x.getMessage())
+                StringEscapeUtils.escapeHtml4(x.getMessage())
             );
         } catch (Exception x) {
             response.setStatusLine(
                 HttpVersion.HTTP_1_1, 
                 HttpStatus.SC_INTERNAL_SERVER_ERROR, 
-                StringEscapeUtils.escapeHtml(x.getMessage())
+                StringEscapeUtils.escapeHtml4(x.getMessage())
             );
         }
     }

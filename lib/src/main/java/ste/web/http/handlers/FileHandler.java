@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
@@ -47,7 +47,7 @@ public class FileHandler implements HttpRequestHandler  {
      * is taken as parent of the URI.
      * 
      * @param docRoot the root directory for files - NOT NULL
-     * @param webContext the base uri for previews - NOT BLANK
+     * @param webContext the base uri for content uris - NOT BLANK
      *
      * @throws IllegalArgumentException if any of the parameter has an illegal
      *         value

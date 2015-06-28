@@ -43,7 +43,7 @@ public class BugFreeFileHandler {
     public void mimeTypeBasedOnFileExtension() throws Exception {
         FileHandler h = new FileHandler("src/test/mime");
         
-        BasicHttpRequest request = new BasicHttpRequest("GET", "/test.txt");
+        BasicHttpRequest request = HttpUtils.getSimpleGet("/test.txt");
         BasicHttpResponse response = HttpUtils.getBasicResponse();
         
         h.handle(request, response, new HttpSessionContext());
@@ -51,12 +51,12 @@ public class BugFreeFileHandler {
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
         then(response.getEntity().getContentType().getValue()).isEqualTo(ContentType.TEXT_PLAIN.getMimeType());
         
-        request = new BasicHttpRequest("GET", "/test.html");
+        request = HttpUtils.getSimpleGet("/test.html");
         h.handle(request, response, new HttpSessionContext());
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
         then(response.getEntity().getContentType().getValue()).isEqualTo(ContentType.TEXT_HTML.getMimeType());
         
-        request = new BasicHttpRequest("GET", "/test.png");
+        request = HttpUtils.getSimpleGet("/test.png");
         h.handle(request, response, new HttpSessionContext());
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
         then(response.getEntity().getContentType().getValue()).isEqualTo(ContentType.create("image/png").getMimeType());
@@ -66,7 +66,7 @@ public class BugFreeFileHandler {
     public void defaultMimeTypeIsOctetBinary() throws Exception {
         FileHandler h = new FileHandler("src/test/mime");
         
-        BasicHttpRequest request = new BasicHttpRequest("GET", "/test.bin");
+        BasicHttpRequest request = HttpUtils.getSimpleGet("/test.bin");
         BasicHttpResponse response = HttpUtils.getBasicResponse();
         
         h.handle(request, response, new HttpSessionContext());
@@ -79,7 +79,7 @@ public class BugFreeFileHandler {
     public void notFound() throws Exception {
         FileHandler h = new FileHandler("src/test/mime");
         
-        BasicHttpRequest request = new BasicHttpRequest("GET", "/none.bin");
+        BasicHttpRequest request = HttpUtils.getSimpleGet("/none.bin");
         BasicHttpResponse response = HttpUtils.getBasicResponse();
         
         h.handle(request, response, new HttpSessionContext());
@@ -96,7 +96,7 @@ public class BugFreeFileHandler {
         
         
         for (String q: new String[] {"", "p1", "p1=v1", "p1=v1&", "p1=v1&p2=v2"}) {
-            BasicHttpRequest request = new BasicHttpRequest("GET", "/test.html?");
+            BasicHttpRequest request = HttpUtils.getSimpleGet("/test.html?");
                 
             h.handle(request, response, new HttpSessionContext());
         

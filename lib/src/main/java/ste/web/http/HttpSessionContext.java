@@ -15,6 +15,7 @@
  */
 package ste.web.http;
 
+import java.security.Principal;
 import java.util.HashMap;
 import org.apache.http.protocol.HttpContext;
 
@@ -27,6 +28,7 @@ public class HttpSessionContext
     implements HttpContext {
     
     private HttpSession session;
+    private Principal principal;
 
     @Override
     public Object getAttribute(final String id) {
@@ -49,6 +51,14 @@ public class HttpSessionContext
     
     public void setSession(final HttpSession session) {
         this.session = session;
+    }
+    
+    public void setPrincipal(Principal principal) {
+        this.principal = principal;
+    }
+    
+    public Principal getPrincipal() {
+        return principal;
     }
     
 }

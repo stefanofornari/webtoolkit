@@ -16,8 +16,12 @@
 
 package ste.web.http;
 
+import java.io.UnsupportedEncodingException;
+import java.util.Base64;
 import java.util.Locale;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpRequest;
@@ -26,8 +30,10 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.EnglishReasonPhraseCatalog;
+import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HTTP;
+import ste.web.acl.User;
 import static ste.web.beanshell.BeanShellUtils.CONTENT_TYPE_JSON;
 
 import ste.web.http.message.BasicStatusLine;
@@ -89,5 +95,49 @@ public class HttpUtils {
         String contentType = headers[0].getValue();
         return CONTENT_TYPE_JSON.equals(contentType)
             || contentType.startsWith(CONTENT_TYPE_JSON + ";");
+    }
+    
+    public static BasicHttpRequest getSimpleGet(final String uri) {
+        return new BasicHttpRequest("GET", uri);
+    }
+    
+    public static Pair<String, String> parseBasicAuth(final Header authorization) {
+        String authString = getAuthString(authorization);
+        
+        Pair<String, String> pair = null;
+        
+        if (authString != null) {
+            int p = authString.indexOf(':');
+            if (p>0) {
+                String login = authString.substring(0, p);
+                pair = new MutablePair<>(login, authString.substring(p+1));
+            } else if (p<0) {
+                pair = new MutablePair<>(authString, null);
+            }
+        }
+        
+        return pair;
+    }
+    
+    // --------------------------------------------------------- private methods
+    
+    private static String getAuthString(final Header authorization) {
+        if (authorization == null) {
+            return null;
+        }
+        
+        String value = authorization.getValue();
+        
+        if ((value == null) || !value.startsWith("Basic ") || (value.length() == 6)) {
+            return null;
+        }
+        
+        value = value.substring(6);
+        
+        try {
+            return new String(Base64.getDecoder().decode(value), "UTF-8");
+         } catch (UnsupportedEncodingException x) {
+            return null;
+        } 
     }
 }

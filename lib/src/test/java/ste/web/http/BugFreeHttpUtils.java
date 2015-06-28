@@ -16,19 +16,23 @@
 
 package ste.web.http;
 
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.RequestLine;
 import org.apache.http.StatusLine;
 import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.HTTP;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.eclipse.jetty.http.HttpHeader;
 import org.junit.Test;
-import ste.web.beanshell.BeanShellUtils;
 import static ste.web.beanshell.BeanShellUtils.CONTENT_TYPE_JSON;
 import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI_PARAMETERS;
 
@@ -38,7 +42,7 @@ import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI_PARAMETERS;
  */
 public class BugFreeHttpUtils {
     @Test
-    public void createSimpleResponse() {
+    public void create_simple_response() {
         HttpResponse r = HttpUtils.getBasicResponse();
         StatusLine l = r.getStatusLine();
         then(l).isNotNull();
@@ -48,13 +52,13 @@ public class BugFreeHttpUtils {
     }
     
     @Test
-    public void createSimpleResponseWithEntity() {
+    public void create_simple_response_with_entity() {
         HttpResponse r = HttpUtils.getBasicResponse(true);
         then(r.getEntity()).isNotNull().isInstanceOf(BasicHttpEntity.class);
     }
     
     @Test
-    public void sendTemporaryRedirectOK() {
+    public void send_temporary_redirect_ok() {
         HttpResponse r = HttpUtils.getBasicResponse();
         HttpUtils.sendTemporaryRedirect(r, "newurl.html");
         
@@ -63,7 +67,7 @@ public class BugFreeHttpUtils {
     }
     
     @Test
-    public void sentTemporaryRedirectWithNullOrEmptyParametetrs() {
+    public void sent_temporary_redirect_with_null_or_empty_parametetrs() {
         try {
             HttpUtils.sendTemporaryRedirect(null, "something");
             fail("missing check for not nullable parameters");
@@ -85,7 +89,7 @@ public class BugFreeHttpUtils {
     }
     
     @Test
-    public void hasJSONBody() throws Exception {
+    public void has_JSON_body() throws Exception {
         BasicHttpRequest request = new BasicHttpRequest("GET", TEST_URI_PARAMETERS);
         then(HttpUtils.hasJSONBody(request)).isFalse();
         
@@ -97,5 +101,67 @@ public class BugFreeHttpUtils {
         
         request.setHeader(HTTP.CONTENT_TYPE, CONTENT_TYPE_JSON + "; cherset=UTF8");
         then(HttpUtils.hasJSONBody(request)).isTrue();
+    }
+    
+    @Test
+    public void get_simple_get() throws Exception {
+        final String[] URIS = new String[] {
+            "/test1", "index.html", "/test/test1/test2"
+        };
+        
+        for (String URI: URIS) {
+            BasicHttpRequest r = HttpUtils.getSimpleGet(URI);
+
+            then(r).isNotNull();
+            RequestLine l = r.getRequestLine();
+            then(l.getMethod()).isEqualTo("GET");
+            then(l.getUri()).isEqualTo(URI);
+        }
+    }
+    
+    @Test
+    public void parse_basic_auth_ok() throws Exception {
+        final Pair<String, String>[] PAIRS = new Pair[] {
+            new ImmutablePair<>("abcd", "1234"),
+            new ImmutablePair<>("defg", "5678"),
+            new ImmutablePair<>("hij", ""),
+        };
+        
+        for (Pair<String, String> p: PAIRS) {
+            then(HttpUtils.parseBasicAuth(
+                new BasicHeader(
+                    HttpHeaders.AUTHORIZATION, 
+                    "Basic " + Base64.encode((p.getLeft() + ':' + p.getRight()).getBytes("UTF-8"))
+                )
+            )).isEqualTo(p);
+        }
+        
+        Pair<String, String> p = new ImmutablePair<>("klm", null);
+        then(HttpUtils.parseBasicAuth(
+            new BasicHeader(
+                HttpHeaders.AUTHORIZATION, 
+                "Basic " + Base64.encode(p.getLeft().getBytes("UTF-8"))
+            )
+        )).isEqualTo(p);
+    }
+    
+    @Test
+    public void parse_basic_auth_ko() throws Exception {
+        final String[] PAIRS = new String[] {
+            null,
+            "",
+            "Basic ",
+            "Basic " + Base64.encode("".getBytes("UTF-8")),
+            "Basic " + Base64.encode(":onlypassword".getBytes("UTF-8")),
+            "something " + Base64.encode("abc:123".getBytes("UTF-8")),
+            "somethingsimple"
+        };
+        
+        for (String s: PAIRS) {
+            System.out.println("checking " + s);
+            then(HttpUtils.parseBasicAuth(
+                new BasicHeader(HttpHeaders.AUTHORIZATION, s)
+            )).isNull();
+        }
     }
 }

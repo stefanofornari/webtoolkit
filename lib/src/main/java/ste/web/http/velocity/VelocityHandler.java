@@ -29,7 +29,7 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;

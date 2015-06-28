@@ -24,7 +24,7 @@ package ste.web.http.api;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.message.BasicRequestLine;
