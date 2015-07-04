@@ -27,6 +27,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,14 +36,12 @@ import org.junit.rules.TemporaryFolder;
 import ste.web.http.HttpSessionContext;
 import ste.web.http.HttpUtils;
 import ste.web.acl.AccessControlList;
+import ste.web.acl.HashMapAuthenticator;
 import ste.web.acl.User;
 
 
-/**
- *
- * TODO: null values in contructor
- */
 public class BugFreeRestrictedResourceHandler {
+    
     @Rule
     public final TemporaryFolder DOCROOT = new TemporaryFolder();
     
@@ -51,7 +50,8 @@ public class BugFreeRestrictedResourceHandler {
     };
     
     private final User[] USERS = {
-        new User("one"), new User("two"), new User("three"), new User("four")
+        new User("one", "111"), new User("two", "222"), 
+        new User("three", "333"), new User("four", "444")
     };
     
     private final AccessControlList ACL = new AccessControlList();
@@ -66,9 +66,32 @@ public class BugFreeRestrictedResourceHandler {
         }
     };
     
+    private final HashMapAuthenticator AUTHENTICATOR = new HashMapAuthenticator(USERS);
+    
     @Before
     public void before() {
         ACL.add("ste.web.acl.permissions.star");
+    }
+    
+    @Test
+    public void constructors() {
+        try {
+            new RestrictedResourceHandler(null, ACL, AUTHENTICATOR);
+            fail("missing arguments check");
+        } catch (IllegalArgumentException x) {
+            then(x).hasMessage("handler can not be null");
+        }
+        
+        RestrictedResourceHandler h = 
+            new RestrictedResourceHandler(DUMMY_HANDLER, null, null);
+        then(h.getHandler()).isSameAs(DUMMY_HANDLER);
+        then(h.getAcl()).isNull();
+        then(h.getAuthenticator()).isNull();
+        
+        h = new RestrictedResourceHandler(DUMMY_HANDLER, ACL, AUTHENTICATOR);
+        then(h.getHandler()).isSameAs(DUMMY_HANDLER);
+        then(h.getAcl()).isSameAs(ACL);
+        then(h.getAuthenticator()).isSameAs(AUTHENTICATOR);
     }
 
     //
@@ -78,7 +101,7 @@ public class BugFreeRestrictedResourceHandler {
     @Test
     public void handle_the_request_in_authenticated_session() throws Exception {
         RestrictedResourceHandler h = 
-            new RestrictedResourceHandler(DUMMY_HANDLER, ACL);
+            new RestrictedResourceHandler(DUMMY_HANDLER, ACL, AUTHENTICATOR);
         
         Set<String> permissions = new HashSet<>();
         permissions.add("ste.web.acl.permissions.star");
@@ -103,7 +126,7 @@ public class BugFreeRestrictedResourceHandler {
     public void returns_401_with_wwwauthenticate_on_get_if_unauthenticated_session()
     throws Exception {
         RestrictedResourceHandler h = 
-            new RestrictedResourceHandler(DUMMY_HANDLER, ACL);
+            new RestrictedResourceHandler(DUMMY_HANDLER, ACL, AUTHENTICATOR);
         
         for (String URI: RESTRICTED_URIS) {
             HttpSessionContext session = new HttpSessionContext();
@@ -126,7 +149,7 @@ public class BugFreeRestrictedResourceHandler {
         acl.add("ste.web.acl.permissions.private");
         
         RestrictedResourceHandler h = 
-            new RestrictedResourceHandler(DUMMY_HANDLER, acl);
+            new RestrictedResourceHandler(DUMMY_HANDLER, acl, AUTHENTICATOR);
         
         for (Principal user: USERS) {
             for (String URI: RESTRICTED_URIS) {
@@ -146,21 +169,84 @@ public class BugFreeRestrictedResourceHandler {
     }
     
     @Test
+    public void returns_401_with_wwwauthenticate_on_get_if_unmached_credentials()
+    throws Exception {
+        RestrictedResourceHandler h = 
+            new RestrictedResourceHandler(DUMMY_HANDLER, null, new HashMapAuthenticator());
+        
+        for (Principal user: USERS) {
+            HttpSessionContext session = new HttpSessionContext();
+            HttpRequest rq = HttpUtils.getSimpleGet(RESTRICTED_URIS[0]);
+            HttpResponse rs = HttpUtils.getBasicResponse();
+            session.setPrincipal(user);
+
+            h.handle(rq, rs, session);
+
+            StatusLine sl = rs.getStatusLine();
+            then(sl.getStatusCode()).isEqualTo(HttpStatus.SC_UNAUTHORIZED);
+            then(sl.getReasonPhrase()).isEqualTo("invalid credentials");
+            then(rs.getFirstHeader(HttpHeaders.WWW_AUTHENTICATE).getValue()).isEqualTo("Basic realm=\"serverone\"");
+        }
+    }
+    
+    @Test
+    public void returns_200_on_get_if_mached_credentials()
+    throws Exception {
+        RestrictedResourceHandler h = 
+            new RestrictedResourceHandler(DUMMY_HANDLER, null, AUTHENTICATOR);
+        
+        for (Principal user: USERS) {
+            HttpSessionContext session = new HttpSessionContext();
+            HttpRequest rq = HttpUtils.getSimpleGet(RESTRICTED_URIS[0]);
+            HttpResponse rs = HttpUtils.getBasicResponse();
+            session.setPrincipal(user);
+
+            h.handle(rq, rs, session);
+
+            StatusLine sl = rs.getStatusLine();
+            then(sl.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+        }
+    }
+    
+    @Test
     public void get_acl() {
-        then(new RestrictedResourceHandler(DUMMY_HANDLER, ACL).getAcl()).isSameAs(ACL);
+        then(new RestrictedResourceHandler(DUMMY_HANDLER, ACL, AUTHENTICATOR).getAcl()).isSameAs(ACL);
         
         AccessControlList acl = new AccessControlList();
-        then(new RestrictedResourceHandler(DUMMY_HANDLER, acl).getAcl()).isSameAs(acl);
+        then(new RestrictedResourceHandler(DUMMY_HANDLER, acl, AUTHENTICATOR).getAcl()).isSameAs(acl);
     }
     
     @Test
     public void no_auth_check_if_acl_is_null() throws Exception {
         RestrictedResourceHandler h = 
-            new RestrictedResourceHandler(DUMMY_HANDLER, null);
+            new RestrictedResourceHandler(DUMMY_HANDLER, null, AUTHENTICATOR);
         
         HttpSessionContext session = new HttpSessionContext();
         HttpRequest rq = HttpUtils.getSimpleGet(RESTRICTED_URIS[0]);
         HttpResponse rs = HttpUtils.getBasicResponse();
+        session.setPrincipal(USERS[0]);
+
+        h.handle(rq, rs, session);
+
+        StatusLine sl = rs.getStatusLine();
+        then(sl.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+        then(rs.getFirstHeader(HttpHeaders.CONTENT_LOCATION).getValue())
+            .isEqualTo(rq.getRequestLine().getUri());
+    }
+    
+    @Test
+    public void no_auth_check_if_authenticator_is_null() throws Exception {
+        RestrictedResourceHandler h = 
+            new RestrictedResourceHandler(DUMMY_HANDLER, ACL, null);
+        
+        HttpSessionContext session = new HttpSessionContext();
+        HttpRequest rq = HttpUtils.getSimpleGet(RESTRICTED_URIS[0]);
+        HttpResponse rs = HttpUtils.getBasicResponse();
+        Set<String> permissions = new HashSet<>();
+        permissions.add("ste.web.acl.permissions.star");
+
+        USERS[0].setPermissions(permissions);
+        session.setPrincipal(USERS[0]);
 
         h.handle(rq, rs, session);
 

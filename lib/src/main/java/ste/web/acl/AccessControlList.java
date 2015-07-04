@@ -38,7 +38,7 @@ public class AccessControlList {
         return permissions;
     }
     
-    public void checkPermissions(final Set<String> permissions)
+    public void check(final Set<String> permissions)
     throws AccessControlException {
         if (permissions == null) {
             throw new AccessControlException("no permissions given");

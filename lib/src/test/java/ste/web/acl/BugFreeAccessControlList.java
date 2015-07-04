@@ -48,13 +48,13 @@ public class BugFreeAccessControlList {
     @Test
     public void check_permissions_fails_if_no_given_permissions() {
         try {
-            ACL.checkPermissions(null);
+            ACL.check(null);
         } catch (AccessControlException x) {
             then(x).hasMessageContaining("no permissions given");
         }
         
         try {
-            ACL.checkPermissions(new HashSet<String>());
+            ACL.check(new HashSet<String>());
         } catch (AccessControlException x) {
             then(x).hasMessage("given permissions [] miss some of [ste.web.acl.permissions.star]");
         }
@@ -63,13 +63,13 @@ public class BugFreeAccessControlList {
     @Test
     public void check_permissions_fail_if_no_permissions() {
         try {
-            EMPTY.checkPermissions(PERMISSION_SET_1);
+            EMPTY.check(PERMISSION_SET_1);
         } catch (AccessControlException x) {
             then(x).hasMessageContaining("no allowed permissions");
         }
         
         try {
-            EMPTY.checkPermissions(PERMISSION_SET_2);
+            EMPTY.check(PERMISSION_SET_2);
         } catch (AccessControlException x) {
             then(x).hasMessageContaining("no allowed permissions");
         }
@@ -78,13 +78,13 @@ public class BugFreeAccessControlList {
     @Test
     public void check_permissions_fail_if_not_all_permissions_given() {
         try {
-            ACL.checkPermissions(PERMISSION_SET_1);
+            ACL.check(PERMISSION_SET_1);
         } catch (AccessControlException x) {
             then(x).hasMessage("given permissions [ste.web.acl.permissions.dummy] miss some of [ste.web.acl.permissions.star]");
         }
         
         try {
-            ACL.checkPermissions(PERMISSION_SET_3);
+            ACL.check(PERMISSION_SET_3);
         } catch (AccessControlException x) {
             then(x).hasMessage("given permissions " + PERMISSION_SET_3 + " miss some of [ste.web.acl.permissions.star]");
         }
@@ -92,7 +92,7 @@ public class BugFreeAccessControlList {
     
     @Test
     public void check_permissions_ok_if_all_permissions_given() {
-        ACL.checkPermissions(PERMISSION_SET_2);
+        ACL.check(PERMISSION_SET_2);
     }
     
     @Test
@@ -100,9 +100,9 @@ public class BugFreeAccessControlList {
         AccessControlList acl = new AccessControlList();
         
         acl.add(".*");
-        acl.checkPermissions(PERMISSION_SET_1);
-        acl.checkPermissions(PERMISSION_SET_2);
-        acl.checkPermissions(PERMISSION_SET_3);
+        acl.check(PERMISSION_SET_1);
+        acl.check(PERMISSION_SET_2);
+        acl.check(PERMISSION_SET_3);
     }
     
     @Test

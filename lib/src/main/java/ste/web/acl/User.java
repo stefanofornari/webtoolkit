@@ -30,6 +30,10 @@ public class User implements Principal {
     private Set<String> permissions;
     
     public User(String name) {
+        this(name, null);
+    }
+    
+    public User(final String name, final String secret) {
                this.name = name;
         this.permissions = null;
              this.secret = null;

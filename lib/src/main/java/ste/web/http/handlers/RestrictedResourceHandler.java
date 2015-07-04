@@ -28,6 +28,8 @@ import org.apache.http.protocol.HttpRequestHandler;
 import ste.web.http.HttpSessionContext;
 import ste.web.acl.AccessControlList;
 import ste.web.acl.MissingCredentialsException;
+import ste.web.acl.Authenticator;
+import ste.web.acl.InvalidCredentialsException;
 import ste.web.acl.User;
 
 /**
@@ -38,6 +40,7 @@ public class RestrictedResourceHandler implements HttpRequestHandler {
     
     private final HttpRequestHandler handler;
     private final  AccessControlList acl;
+    private final Authenticator authenticator;
     
     /**
      * Creates a new RestrictedResourceHandler that wraps the given handler and
@@ -47,17 +50,33 @@ public class RestrictedResourceHandler implements HttpRequestHandler {
      * 
      * Once handler and acl are given they cannot be changed.
      * 
-     * @param handler the handler to wrap - NOT NULL
-     * @param     acl  the access control list if not null - MAY BE NULL
+     * @param       handler the handler to wrap - NOT NULL
+     * @param           acl the access control list if not null - MAY BE NULL
+     * @param authenticator the authenticator to use for authentication (if null
+     *                      no authentication is performed) - MY BE NULL
      */
     public RestrictedResourceHandler(final HttpRequestHandler handler,
-                                     final     AccessControlList acl    ) {
-        this.handler = handler;
-        this.acl = acl;
+                                     final  AccessControlList acl,
+                                     final      Authenticator authenticator) {
+        if (handler == null) {
+            throw new IllegalArgumentException("handler can not be null");
+        }
+        
+              this.handler = handler;
+                  this.acl = acl;
+        this.authenticator = authenticator;
+    }
+    
+    public HttpRequestHandler getHandler() {
+        return handler;
     }
     
     public AccessControlList getAcl() {
         return acl;
+    }
+    
+    public Authenticator getAuthenticator() {
+        return authenticator;
     }
 
     @Override
@@ -65,15 +84,23 @@ public class RestrictedResourceHandler implements HttpRequestHandler {
         HttpSessionContext session = (HttpSessionContext)context;
         
         try {
-            if (acl != null) {
-                authorize((User)session.getPrincipal());
-            }
+            authenticate((User)session.getPrincipal());
+            authorize((User)session.getPrincipal());
+            
             handler.handle(request, response, context);
         } catch (MissingCredentialsException x) {
             response.setStatusLine(
                 HttpVersion.HTTP_1_1, 
                 HttpStatus.SC_UNAUTHORIZED, 
                 "resource " + request.getRequestLine().getUri() + " requires authentication"
+            );
+            response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"serverone\"");
+            return;
+        } catch (InvalidCredentialsException x) {
+            response.setStatusLine(
+                HttpVersion.HTTP_1_1, 
+                HttpStatus.SC_UNAUTHORIZED, 
+                "invalid credentials"
             );
             response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"serverone\"");
             return;
@@ -90,11 +117,15 @@ public class RestrictedResourceHandler implements HttpRequestHandler {
     
     // --------------------------------------------------------- private methods
     
-    private void authorize(final User user) throws AccessControlException {
-        if (user == null){
-            throw new MissingCredentialsException();
+    private void authenticate(final User user) throws SecurityException {
+        if (authenticator != null) {
+            authenticator.check(user);
         }
-        
-        acl.checkPermissions(user.getPermissions());
-    }    
+    }
+    
+    private void authorize(final User user) throws AccessControlException {
+        if (acl != null) {
+            acl.check(user.getPermissions());
+        }
+    }
 }
