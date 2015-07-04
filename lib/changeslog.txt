@@ -1,3 +1,6 @@
+-20150704
+- added authentication/authorization
+
 20150516
 - fixed an issue with utf-8 characters
 - released v1.5.1
