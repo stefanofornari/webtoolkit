@@ -1,4 +1,7 @@
--20150704
+20150705
+- released v1.6.0
+
+20150704
 - added authentication/authorization
 
 20150516
