@@ -27,8 +27,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import org.apache.http.HttpException;
+import org.apache.http.HttpStatus;
 import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.FileEntity;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HttpCoreContext;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
@@ -37,6 +40,7 @@ import org.junit.Test;
 import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_QUERY_STRING;
 import static ste.web.beanshell.Constants.*;
 import ste.web.http.HttpSessionContext;
+import ste.web.http.HttpUtils;
 import ste.web.http.beanshell.BeanShellUtils;
 import ste.xtest.reflect.PrivateAccess;
 
@@ -52,6 +56,7 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
     public static final String TEST_URI_ITEMS2 = "/api/store/get/items2";
     public static final String TEST_URI_ITEMS3 = "/api/store/get/items3";
     public static final String TEST_URI_ITEMS4 = "/api/store/get/items4";
+    public static final String TEST_URI_ITEMS5 = "/api/store/get/items5";
     public static final String TEST_URI_PARAMETERS = "/api/app/get/parameters?" + TEST_QUERY_STRING;
     
     public BugFreeApiHandlerExec() {
@@ -208,6 +213,31 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
     }
     
     @Test
+    /**
+     * When the content is returned as file (the result variable is of type
+     * java.io.File, the response body shall contain an EntityFile.
+     */
+    public void return_content_in_the_body_as_file() throws Exception {
+        BasicHttpRequest request = request(TEST_URI_ITEMS5+"?file=/tmp/afile.txt");
+        BasicHttpResponse response = HttpUtils.getBasicResponse();
+        
+        handler.handle(request, response, context);
+        
+        then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+        then(context.getAttribute("items5")).isEqualTo(new File("/tmp/afile.txt"));
+        then(response.getEntity()).isInstanceOf(FileEntity.class);
+        
+        request = request(TEST_URI_ITEMS5+"?file=/anotherfile.txt");
+        response = HttpUtils.getBasicResponse();
+        handler.handle(request, response, context);
+        
+        then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+        then(context.getAttribute("items5")).isEqualTo(new File("/anotherfile.txt"));
+        then(response.getEntity()).isInstanceOf(FileEntity.class);
+    }
+    
+    
+    @Test
     public void return_no_content_if_no_body() throws Exception {
         handler.handle(request(TEST_URI_ITEMS3), response, context);
         
@@ -231,6 +261,8 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
         JSONObject o = new JSONObject(json);
         then(o.getString("two")).isEqualTo("papà");
     }
-        
+    
+    
+
     // --------------------------------------------------------- Private methods
 }

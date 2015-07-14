@@ -97,6 +97,17 @@ public class BugFreeApiHandlerURI extends BugFreeApiHandlerBase {
         
     }
     
+    @Test
+    /**
+     * The result of the script shall be stored in a variable with the same name 
+     * of the script. 
+     */
+    public void rsult_in_script_name_var() throws Exception {
+        handler.handle(request(TEST_API_URI01), response, context);
+        
+        then(context.getAttribute("items")).isEqualTo("{one: '111', two: '222'}");
+    }
+    
     // ------------------------------------------------------- protected methods
     
     @Override

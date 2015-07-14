@@ -36,7 +36,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.FileEntity;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import ste.web.http.HttpSessionContext;
@@ -104,15 +106,21 @@ public class ApiHandler  implements HttpRequestHandler {
             
             Object body = bsh.get(rr.getHandler());
             
-            BasicHttpEntity e = (BasicHttpEntity)response.getEntity();
+            AbstractHttpEntity e = (AbstractHttpEntity)response.getEntity();
             if (body != null) {
-                String bodyString = String.valueOf(body);
-                byte[] buf = bodyString.getBytes();
-                ByteArrayInputStream is = new ByteArrayInputStream(buf);
-                e.setContent(is);
-                e.setContentLength(buf.length);
+                if (body instanceof File) {
+                    e = new FileEntity((File)body);
+                    response.setEntity(e);
+                } else {
+                    String bodyString = String.valueOf(body);
+                    byte[] buf = bodyString.getBytes();
+                    ByteArrayInputStream is = new ByteArrayInputStream(buf);
+                    BasicHttpEntity basicEntity = (BasicHttpEntity)e;
+                    basicEntity.setContent(is);
+                    basicEntity.setContentLength(buf.length);
+                }
             } else {
-                e.setContentLength(0);
+                ((BasicHttpEntity)e).setContentLength(0);
             }
             
             if (e.getContentType() == null) {
