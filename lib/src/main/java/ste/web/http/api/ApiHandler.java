@@ -38,10 +38,12 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import ste.web.http.HttpSessionContext;
+import ste.web.http.MimeUtils;
 import static ste.web.http.api.Constants.*;
 import ste.web.http.beanshell.BeanShellUtils;
 
@@ -107,10 +109,21 @@ public class ApiHandler  implements HttpRequestHandler {
             Object body = bsh.get(rr.getHandler());
             
             AbstractHttpEntity e = (AbstractHttpEntity)response.getEntity();
+            if (e.getContentType() == null) {
+                e.setContentType("application/json");
+            }
+            
             if (body != null) {
                 if (body instanceof File) {
-                    e = new FileEntity((File)body);
+                    File f = (File)body;
+                    e = new FileEntity(f);
                     response.setEntity(e);
+                    String mimeType = MimeUtils.getInstance().getMimeType(f);
+
+                    e.setContentType(
+                        MimeUtils.MIME_UNKNOWN.equals(mimeType)?
+                            "application/octet-stream" : mimeType
+                    );
                 } else {
                     String bodyString = String.valueOf(body);
                     byte[] buf = bodyString.getBytes();
@@ -118,15 +131,12 @@ public class ApiHandler  implements HttpRequestHandler {
                     BasicHttpEntity basicEntity = (BasicHttpEntity)e;
                     basicEntity.setContent(is);
                     basicEntity.setContentLength(buf.length);
+                    if (e.getContentType() == null) {
+                        e.setContentType("application/json");
+                    }
                 }
-            } else {
-                ((BasicHttpEntity)e).setContentLength(0);
             }
             
-            if (e.getContentType() == null) {
-                e.setContentType("application/json");
-            }
-
             BeanShellUtils.cleanup(bsh, request);
             BeanShellUtils.setVariablesAttributes(bsh, context);
         } catch (FileNotFoundException e) {

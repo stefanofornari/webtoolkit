@@ -219,16 +219,17 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
      */
     public void return_content_in_the_body_as_file() throws Exception {
         BasicHttpRequest request = request(TEST_URI_ITEMS5+"?file=/tmp/afile.txt");
-        BasicHttpResponse response = HttpUtils.getBasicResponse();
+        BasicHttpResponse response = HttpUtils.getBasicResponse(true);
         
         handler.handle(request, response, context);
         
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
         then(context.getAttribute("items5")).isEqualTo(new File("/tmp/afile.txt"));
         then(response.getEntity()).isInstanceOf(FileEntity.class);
+        then(response.getEntity().getContentType().getValue()).isEqualTo("text/plain");
         
         request = request(TEST_URI_ITEMS5+"?file=/anotherfile.txt");
-        response = HttpUtils.getBasicResponse();
+        response = HttpUtils.getBasicResponse(true);
         handler.handle(request, response, context);
         
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
@@ -241,7 +242,7 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
     public void return_no_content_if_no_body() throws Exception {
         handler.handle(request(TEST_URI_ITEMS3), response, context);
         
-        then(response.getEntity().getContentLength()).isZero();
+        then(response.getEntity().getContentLength()).isEqualTo(-1);
     }
     
     @Test
