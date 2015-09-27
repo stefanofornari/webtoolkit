@@ -33,7 +33,6 @@ import org.apache.http.impl.EnglishReasonPhraseCatalog;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HTTP;
-import ste.web.acl.User;
 import static ste.web.beanshell.BeanShellUtils.CONTENT_TYPE_JSON;
 
 import ste.web.http.message.BasicStatusLine;
