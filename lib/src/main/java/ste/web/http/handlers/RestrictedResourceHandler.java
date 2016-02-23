@@ -40,7 +40,7 @@ public class RestrictedResourceHandler implements HttpRequestHandler {
     
     private final HttpRequestHandler handler;
     private final  AccessControlList acl;
-    private final Authenticator authenticator;
+    private final      Authenticator authenticator;
     
     /**
      * Creates a new RestrictedResourceHandler that wraps the given handler and
@@ -94,7 +94,7 @@ public class RestrictedResourceHandler implements HttpRequestHandler {
                 HttpStatus.SC_UNAUTHORIZED, 
                 "resource " + request.getRequestLine().getUri() + " requires authentication"
             );
-            response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"serverone\"");
+            response.addHeader(HttpHeaders.WWW_AUTHENTICATE, authenticator.getMessage());
             return;
         } catch (InvalidCredentialsException x) {
             response.setStatusLine(
@@ -102,7 +102,7 @@ public class RestrictedResourceHandler implements HttpRequestHandler {
                 HttpStatus.SC_UNAUTHORIZED, 
                 "invalid credentials"
             );
-            response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"serverone\"");
+            response.addHeader(HttpHeaders.WWW_AUTHENTICATE, authenticator.getMessage());
             return;
         } catch (AccessControlException x) {
             response.setStatusLine(

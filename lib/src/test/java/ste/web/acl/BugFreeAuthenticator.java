@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Stefano Fornari.
+ * Copyright (C) 2016 Stefano Fornari.
  * All Rights Reserved.  No use, copying or distribution of this
  * work may be made except in accordance with a valid license
  * agreement from Stefano Fornari.  This notice must be
@@ -15,26 +15,36 @@
  */
 package ste.web.acl;
 
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Test;
+
 /**
  *
  * @author ste
  */
-public interface Authenticator {
-    /**
-     * Authenticate the given user
-     * 
-     * @param user the user to authenticate - MAY BE NULL
-     * 
-     * @throws InvalidCredentialsException if the authentication fails
-     * @throws MissingCredentialsException if user does not contain credentials or is null
-     */
-    public void check(User user) throws MissingCredentialsException, InvalidCredentialsException;
+public class BugFreeAuthenticator {
     
     /**
      * The authenticator can provide a message to describe the authentication 
      * mechanism. This can be used to set the WWW-Authenticate header
-     *
-     * @return the authentication message
      */
-    public String getMessage();
+    @Test
+    public void set_and_get_auth_message() {
+        //
+        // The default is "Basic login"
+        //
+        AbstractAuthenticator a = new AbstractAuthenticator() {
+
+            @Override
+            public void check(User user) throws MissingCredentialsException, InvalidCredentialsException {
+            }
+        };
+        then(a.getMessage()).isEqualTo("Basic login");
+        
+        final String MSG = "Form authentication";
+        a.setMessage(MSG);
+        then(a.getMessage()).isEqualTo(MSG);
+        
+    }
+            
 }

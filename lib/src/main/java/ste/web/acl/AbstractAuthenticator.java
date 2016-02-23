@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Stefano Fornari.
+ * Copyright (C) 2016 Stefano Fornari.
  * All Rights Reserved.  No use, copying or distribution of this
  * work may be made except in accordance with a valid license
  * agreement from Stefano Fornari.  This notice must be
@@ -19,16 +19,9 @@ package ste.web.acl;
  *
  * @author ste
  */
-public interface Authenticator {
-    /**
-     * Authenticate the given user
-     * 
-     * @param user the user to authenticate - MAY BE NULL
-     * 
-     * @throws InvalidCredentialsException if the authentication fails
-     * @throws MissingCredentialsException if user does not contain credentials or is null
-     */
-    public void check(User user) throws MissingCredentialsException, InvalidCredentialsException;
+public abstract class AbstractAuthenticator implements Authenticator {
+    
+    private String message = "Basic login";
     
     /**
      * The authenticator can provide a message to describe the authentication 
@@ -36,5 +29,12 @@ public interface Authenticator {
      *
      * @return the authentication message
      */
-    public String getMessage();
+    @Override
+    public String getMessage() {
+        return message;
+    }
+    
+    public void setMessage(String msg) {
+        message = msg;
+    }
 }

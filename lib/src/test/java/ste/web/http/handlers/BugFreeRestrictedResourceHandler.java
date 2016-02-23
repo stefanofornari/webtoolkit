@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import javax.ws.rs.core.HttpHeaders;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
@@ -127,6 +128,7 @@ public class BugFreeRestrictedResourceHandler {
     throws Exception {
         RestrictedResourceHandler h = 
             new RestrictedResourceHandler(DUMMY_HANDLER, ACL, AUTHENTICATOR);
+        AUTHENTICATOR.message = UUID.randomUUID().toString();
         
         for (String URI: RESTRICTED_URIS) {
             HttpSessionContext session = new HttpSessionContext();
@@ -138,7 +140,7 @@ public class BugFreeRestrictedResourceHandler {
             StatusLine sl = rs.getStatusLine();
             then(sl.getStatusCode()).isEqualTo(HttpStatus.SC_UNAUTHORIZED);
             then(sl.getReasonPhrase()).isEqualTo("resource " + URI + " requires authentication");
-            then(rs.getFirstHeader(HttpHeaders.WWW_AUTHENTICATE).getValue()).isEqualTo("Basic realm=\"serverone\"");
+            then(rs.getFirstHeader(HttpHeaders.WWW_AUTHENTICATE).getValue()).isEqualTo(AUTHENTICATOR.getMessage());
         }
     }
 
@@ -171,8 +173,11 @@ public class BugFreeRestrictedResourceHandler {
     @Test
     public void returns_401_with_wwwauthenticate_on_get_if_unmached_credentials()
     throws Exception {
+        HashMapAuthenticator a = new HashMapAuthenticator();
+        a.message = UUID.randomUUID().toString();
+        
         RestrictedResourceHandler h = 
-            new RestrictedResourceHandler(DUMMY_HANDLER, null, new HashMapAuthenticator());
+            new RestrictedResourceHandler(DUMMY_HANDLER, null, a);
         
         for (Principal user: USERS) {
             HttpSessionContext session = new HttpSessionContext();
@@ -185,7 +190,7 @@ public class BugFreeRestrictedResourceHandler {
             StatusLine sl = rs.getStatusLine();
             then(sl.getStatusCode()).isEqualTo(HttpStatus.SC_UNAUTHORIZED);
             then(sl.getReasonPhrase()).isEqualTo("invalid credentials");
-            then(rs.getFirstHeader(HttpHeaders.WWW_AUTHENTICATE).getValue()).isEqualTo("Basic realm=\"serverone\"");
+            then(rs.getFirstHeader(HttpHeaders.WWW_AUTHENTICATE).getValue()).isEqualTo(a.getMessage());
         }
     }
     

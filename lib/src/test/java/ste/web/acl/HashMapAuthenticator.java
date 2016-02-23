@@ -23,6 +23,8 @@ import java.util.HashMap;
 public class HashMapAuthenticator 
 extends HashMap<String, String>
 implements Authenticator {
+    public String message = "Basic";
+    
     public HashMapAuthenticator(User[] users) {
         for (User u: users) {
             put(u.getName(), u.getSecret());
@@ -52,5 +54,10 @@ implements Authenticator {
                 throw new InvalidCredentialsException();
             }
         }
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
     }
 }
