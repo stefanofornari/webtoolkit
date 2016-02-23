@@ -17,6 +17,7 @@ package ste.web.acl;
 
 import java.security.Principal;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -29,14 +30,30 @@ public class User implements Principal {
     private String secret;
     private Set<String> permissions;
     
-    public User(String name) {
+    /**
+     * Creates a new User given its name
+     * 
+     * @param name NOT EMPTY
+     * @throws IllegalArgumentException if name is empty
+     */
+    public User(String name) throws IllegalArgumentException {
         this(name, null);
     }
     
+    /**
+     * Creates a new User given its name and secret
+     * 
+     * @param name - NOT EMPTY
+     * @param secret - ANY VALUE
+     */
     public User(final String name, final String secret) {
-               this.name = name;
-        this.permissions = null;
-             this.secret = null;
+        if (StringUtils.isEmpty(name)) {
+            throw new IllegalArgumentException("name can not be empty");
+        }
+        
+        this.name        = name  ;
+        this.secret      = secret;
+        this.permissions = null  ;
     }
 
     @Override
