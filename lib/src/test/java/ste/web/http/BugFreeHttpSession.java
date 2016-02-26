@@ -28,7 +28,7 @@ import static ste.xtest.Constants.BLANKS;
 public class BugFreeHttpSession {
     
     @Test
-    public void newInstanceHasANewId() {
+    public void new_instance_has_a_new_id() {
         HttpSession s1 = new HttpSession();
         HttpSession s2 = new HttpSession();
         HttpSession s3 = new HttpSession();
@@ -38,7 +38,7 @@ public class BugFreeHttpSession {
     }
     
     @Test
-    public void idCanNotBeBlank() {
+    public void id_can_not_be_blank() {
         HttpSession s = new HttpSession();
         
         final String[] BLANKS = new String[] { null, "", " ", "\t" };
@@ -53,7 +53,7 @@ public class BugFreeHttpSession {
     }
     
     @Test
-    public void setGetRemoveAttributeOK() {
+    public void set_get_remove_attribute_ok() {
         HttpSession s = new HttpSession();
         s.setAttribute("string", "hello world");
         s.setAttribute("integer", new Integer(111));
@@ -71,7 +71,7 @@ public class BugFreeHttpSession {
     }
     
     @Test
-    public void attributeNameCanNotBeNullInSetGetRemoveAttribute() {
+    public void attribute_name_can_not_be_null_in_XXXRemoveAttribute() {
         HttpSession s = new HttpSession();
         
         try {
@@ -97,7 +97,7 @@ public class BugFreeHttpSession {
     }
     
     @Test
-    public void headerWithJSESSIONID() {
+    public void header_with_JSESSIONID() {
         HttpSession s = new HttpSession();
         
         SessionHeader h = s.getHeader();
@@ -108,7 +108,7 @@ public class BugFreeHttpSession {
     }
     
     @Test
-    public void noAccessAfterExpiration() {
+    public void no_access_after_expiration() {
         HttpSession s = new HttpSession();
         s.expire();
         
@@ -155,7 +155,7 @@ public class BugFreeHttpSession {
     }
     
     @Test
-    public void setId() {
+    public void set_id() {
         HttpSession s = new HttpSession();
         try {
             for (String BLANK: BLANKS) {
