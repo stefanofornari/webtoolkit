@@ -31,6 +31,7 @@ import ste.web.acl.MissingCredentialsException;
 import ste.web.acl.Authenticator;
 import ste.web.acl.InvalidCredentialsException;
 import ste.web.acl.User;
+import ste.web.http.HttpSession;
 
 /**
  *
@@ -81,11 +82,17 @@ public class RestrictedResourceHandler implements HttpRequestHandler {
 
     @Override
     public void handle(HttpRequest request, HttpResponse response, HttpContext context) throws HttpException, IOException {
-        HttpSessionContext session = (HttpSessionContext)context;
+        HttpSessionContext sessionContext = (HttpSessionContext)context;
         
         try {
-            authenticate((User)session.getPrincipal());
-            authorize((User)session.getPrincipal());
+            HttpSession session = sessionContext.getSession();
+            User user = (User)sessionContext.getPrincipal();
+            
+            if ((user != null) || (session.getPrincipal() == null)) {
+                authenticate(user);
+                authorize(user);
+                session.setPrincipal(user);
+            }
             
             handler.handle(request, response, context);
         } catch (MissingCredentialsException x) {

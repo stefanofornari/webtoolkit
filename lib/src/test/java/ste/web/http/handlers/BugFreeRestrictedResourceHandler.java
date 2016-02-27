@@ -39,6 +39,7 @@ import ste.web.http.HttpUtils;
 import ste.web.acl.AccessControlList;
 import ste.web.acl.HashMapAuthenticator;
 import ste.web.acl.User;
+import ste.web.http.HttpSession;
 
 
 public class BugFreeRestrictedResourceHandler {
@@ -107,14 +108,15 @@ public class BugFreeRestrictedResourceHandler {
         Set<String> permissions = new HashSet<>();
         permissions.add("ste.web.acl.permissions.star");
         for (String URI: RESTRICTED_URIS) {
-            HttpSessionContext session = new HttpSessionContext();
+            HttpSessionContext context = new HttpSessionContext();
             HttpRequest rq = HttpUtils.getSimpleGet(URI);
             HttpResponse rs = HttpUtils.getBasicResponse();
             
+            context.setSession(new HttpSession());
             USERS[0].setPermissions(permissions);
-            session.setPrincipal(USERS[0]);
+            context.setPrincipal(USERS[0]);
             
-            h.handle(rq, rs, session);
+            h.handle(rq, rs, context);
             
             StatusLine sl = rs.getStatusLine();
             then(sl.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
@@ -131,11 +133,12 @@ public class BugFreeRestrictedResourceHandler {
         AUTHENTICATOR.message = UUID.randomUUID().toString();
         
         for (String URI: RESTRICTED_URIS) {
-            HttpSessionContext session = new HttpSessionContext();
+            HttpSessionContext context = new HttpSessionContext();
             HttpRequest rq = HttpUtils.getSimpleGet(URI);
             HttpResponse rs = HttpUtils.getBasicResponse();
+            context.setSession(new HttpSession());
             
-            h.handle(rq, rs, session);
+            h.handle(rq, rs, context);
             
             StatusLine sl = rs.getStatusLine();
             then(sl.getStatusCode()).isEqualTo(HttpStatus.SC_UNAUTHORIZED);
@@ -201,16 +204,47 @@ public class BugFreeRestrictedResourceHandler {
             new RestrictedResourceHandler(DUMMY_HANDLER, null, AUTHENTICATOR);
         
         for (Principal user: USERS) {
-            HttpSessionContext session = new HttpSessionContext();
+            HttpSessionContext context = new HttpSessionContext();
             HttpRequest rq = HttpUtils.getSimpleGet(RESTRICTED_URIS[0]);
             HttpResponse rs = HttpUtils.getBasicResponse();
-            session.setPrincipal(user);
+            context.setSession(new HttpSession());
+            context.setPrincipal(user);
 
-            h.handle(rq, rs, session);
+            h.handle(rq, rs, context);
 
             StatusLine sl = rs.getStatusLine();
             then(sl.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+            
+            //
+            // plus, session shall have the principal set
+            //
+            then(context.getSession().getPrincipal()).isSameAs(context.getPrincipal());
         }
+    }
+    
+    @Test
+    public void skip_authentication_if_session_is_already_authenticated() throws Exception {
+        RestrictedResourceHandler h = 
+            new RestrictedResourceHandler(DUMMY_HANDLER, null, AUTHENTICATOR);
+        
+        final User user = new User("one", "111");
+        HttpSessionContext context = new HttpSessionContext();
+        HttpRequest rq = HttpUtils.getSimpleGet(RESTRICTED_URIS[0]);
+        HttpResponse rs = HttpUtils.getBasicResponse();
+        context.setSession(new HttpSession());
+        context.setPrincipal(user);
+
+        h.handle(rq, rs, context);
+
+        StatusLine sl = rs.getStatusLine();
+        then(sl.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+        
+        //
+        // now the session is authenticated
+        //
+        user.setSecret("none");
+        h.handle(rq, rs, context);
+        then(sl.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
     }
     
     @Test
@@ -226,12 +260,13 @@ public class BugFreeRestrictedResourceHandler {
         RestrictedResourceHandler h = 
             new RestrictedResourceHandler(DUMMY_HANDLER, null, AUTHENTICATOR);
         
-        HttpSessionContext session = new HttpSessionContext();
+        HttpSessionContext context = new HttpSessionContext();
         HttpRequest rq = HttpUtils.getSimpleGet(RESTRICTED_URIS[0]);
         HttpResponse rs = HttpUtils.getBasicResponse();
-        session.setPrincipal(USERS[0]);
+        context.setSession(new HttpSession());
+        context.setPrincipal(USERS[0]);
 
-        h.handle(rq, rs, session);
+        h.handle(rq, rs, context);
 
         StatusLine sl = rs.getStatusLine();
         then(sl.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
@@ -244,16 +279,17 @@ public class BugFreeRestrictedResourceHandler {
         RestrictedResourceHandler h = 
             new RestrictedResourceHandler(DUMMY_HANDLER, ACL, null);
         
-        HttpSessionContext session = new HttpSessionContext();
+        HttpSessionContext context = new HttpSessionContext();
         HttpRequest rq = HttpUtils.getSimpleGet(RESTRICTED_URIS[0]);
         HttpResponse rs = HttpUtils.getBasicResponse();
         Set<String> permissions = new HashSet<>();
         permissions.add("ste.web.acl.permissions.star");
 
+        context.setSession(new HttpSession());
         USERS[0].setPermissions(permissions);
-        session.setPrincipal(USERS[0]);
+        context.setPrincipal(USERS[0]);
 
-        h.handle(rq, rs, session);
+        h.handle(rq, rs, context);
 
         StatusLine sl = rs.getStatusLine();
         then(sl.getStatusCode()).isEqualTo(HttpStatus.SC_OK);

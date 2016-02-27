@@ -16,6 +16,7 @@
 
 package ste.web.http;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -31,11 +32,13 @@ implements HttpContext {
     private Map<String, Object> data;
     private String id;
     private boolean expired;
+    private Principal principal;
 
     public HttpSession() {
         this.id = UUID.randomUUID().toString().replace("-", "");
         this.expired = false;
         this.data = new HashMap<>();
+        this.principal = null;
     }
     
     /**
@@ -100,6 +103,14 @@ implements HttpContext {
     
     public void expire() {
         expired = true;
+    }
+    
+    public Principal getPrincipal() {
+        return principal;
+    }
+    
+    public void setPrincipal(Principal principal) {
+        this.principal = principal;
     }
     
     // --------------------------------------------------------- private methods

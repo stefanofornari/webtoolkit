@@ -29,11 +29,10 @@ public class SessionHeader implements Header {
     
     public static final String SESSION_HEADER = "JSESSIONID";
     
-    private final HttpCookie cookie;
+    private final String sessionId;
     
     public SessionHeader(final String sessionId) {
-        cookie = new HttpCookie(SESSION_HEADER, sessionId);
-        cookie.setPath("/");
+        this.sessionId = sessionId;
     }
 
     @Override
@@ -43,7 +42,7 @@ public class SessionHeader implements Header {
 
     @Override
     public String getValue() {
-        return cookie.toString();
+        return String.format("%s=%s; Path=/; Secure", SESSION_HEADER, sessionId);
     }
 
     @Override

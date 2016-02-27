@@ -27,13 +27,13 @@ import org.junit.Test;
 public class BugFreeSessionHeader {
     
     @Test
-    public void headerMustHaveSessionAndPath() {
+    public void header_has_session_path_and_secure() {
         SessionHeader h = new SessionHeader("12345");
         then(h.getName()).isEqualTo("Set-Cookie");
-        then(h.toString()).isEqualTo(h.SESSION_HEADER + "=\"12345\";$Path=\"/\"");
+        then(h.toString()).isEqualTo(h.SESSION_HEADER + "=12345; Path=/; Secure");
         
         h = new SessionHeader("67890");
-        then(h.toString()).isEqualTo(h.SESSION_HEADER + "=\"67890\";$Path=\"/\"");
+        then(h.toString()).isEqualTo(h.SESSION_HEADER + "=67890; Path=/; Secure");
     }
     
     @Test

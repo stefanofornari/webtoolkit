@@ -19,6 +19,7 @@ import java.net.HttpCookie;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
+import ste.web.acl.User;
 import static ste.xtest.Constants.BLANKS;
 
 /**
@@ -169,5 +170,18 @@ public class BugFreeHttpSession {
         final String ID = "123456";
         s.setId(ID);
         then(s.getId()).isEqualTo(ID);
+    }
+    
+    @Test
+    public void get_and_set_principal() {
+        final User TEST_USER1 = new User("aname1");
+        final User TEST_USER2 = new User("aname2");
+        
+        HttpSession s = new HttpSession();
+        
+        then(s.getPrincipal()).isNull();
+        s.setPrincipal(TEST_USER1); then(s.getPrincipal()).isSameAs(TEST_USER1);
+        s.setPrincipal(null); then(s.getPrincipal()).isNull();
+        s.setPrincipal(TEST_USER2); then(s.getPrincipal()).isSameAs(TEST_USER2);
     }
 }
