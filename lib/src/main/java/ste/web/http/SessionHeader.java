@@ -16,7 +16,6 @@
 
 package ste.web.http;
 
-import java.net.HttpCookie;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.ParseException;
