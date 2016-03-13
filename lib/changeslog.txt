@@ -1,3 +1,7 @@
+20160313
+- introducing form-based authentication 
+- released v1.6.2
+
 20150715
 - released 1.6.1
 
