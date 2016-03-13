@@ -1,3 +1,34 @@
+20160313
+- introducing form-based authentication 
+- released v1.6.2
+
+20150715
+- released 1.6.1
+
+20150714
+- improved the way the api manages files. if the api's variable is a java.io.File,
+  an FileEntity is set in the response so that the file can directly handled
+  by the entity
+
+20150705
+- released v1.6.0
+
+20150704
+- added authentication/authorization
+
+20150516
+- fixed an issue with utf-8 characters
+- released v1.5.1
+
+20150501
+-  changed the RESTful API syntax from /api/{action}/{handler}[/{resource}]
+   to  /api/{application}/{action}/{handler}[/{resource}]
+- released v1.5.0
+
+20150215
+- added a new ApiHandler to specifically implement RESTful APIs
+
+
 20141213
 - made BeanShallHandler thread-safe
 - released v1.4.7
