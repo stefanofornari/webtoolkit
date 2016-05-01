@@ -1,3 +1,7 @@
+20160501
+- updated content type file
+- released v1.6.3
+
 20160313
 - introducing form-based authentication 
 - released v1.6.2
