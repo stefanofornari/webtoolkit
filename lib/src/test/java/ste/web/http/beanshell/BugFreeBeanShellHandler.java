@@ -21,7 +21,6 @@
  */
 package ste.web.http.beanshell;
 
-import bsh.EvalError;
 import java.io.File;
 import java.io.IOException;
 import org.apache.http.HttpException;
@@ -42,6 +41,12 @@ import static ste.web.beanshell.Constants.*;
 import ste.web.http.BasicHttpConnection;
 import ste.web.http.HttpSessionContext;
 import ste.xtest.net.TestSocket;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.BDDAssertions.then;
 
 /**
  *
@@ -64,7 +69,7 @@ public class BugFreeBeanShellHandler {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void before() throws Exception {
         request = new BasicHttpRequest("GET", TEST_URI_PARAMETERS);
         context = new HttpSessionContext();
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
@@ -100,7 +105,7 @@ public class BugFreeBeanShellHandler {
     }
 
     @Test
-    public void execScriptDefaultDirs() throws Exception {
+    public void exec_script_default_dirs() throws Exception {
         handler.handle(get(TEST_URI01), response, context);
         then(context.get("first")).isNotNull();
 
@@ -109,7 +114,7 @@ public class BugFreeBeanShellHandler {
     }
 
     @Test
-    public void execScriptNonDefaultDirs() throws Exception {
+    public void exec_script_non_default_dirs() throws Exception {
         handler.setControllersFolder("controllers");
 
         handler.handle(get(TEST_URI03), response, context);
@@ -120,14 +125,14 @@ public class BugFreeBeanShellHandler {
     }
 
     @Test
-    public void scriptNotFound() throws Exception {
+    public void script_not_found() throws Exception {
         handler.handle(get(TEST_URI05), response, context);
         then(HttpStatus.SC_NOT_FOUND).isEqualTo(response.getStatusLine().getStatusCode());
         then(response.getStatusLine().getReasonPhrase()).contains(TEST_URI05);
     }
 
     @Test
-    public void scriptError() throws Exception {
+    public void script_error() throws Exception {
         try {
             handler.handle(get(TEST_URI06), response, context);
             fail(TEST_URI06 + " error shall throw a HttpException");
@@ -161,7 +166,7 @@ public class BugFreeBeanShellHandler {
      }
      */
     @Test
-    public void setMainVariables() throws Exception {
+    public void set_main_variables() throws Exception {
         BasicHttpRequest request = get(TEST_URI01);
         handler.handle(request, response, context);
 
@@ -175,13 +180,13 @@ public class BugFreeBeanShellHandler {
     }
 
     @Test
-    public void returnView() throws Exception {
+    public void return_view() throws Exception {
         handler.handle(get(TEST_URI01), response, context);
         then(context.get(ATTR_VIEW)).isEqualTo("main.v");
     }
 
     @Test
-    public void missingView() throws Exception {
+    public void missing_view() throws Exception {
         try {
             handler.handle(get(TEST_URI10), response, context);
             fail(TEST_URI06 + " error shall throw a ServletException");
@@ -191,7 +196,7 @@ public class BugFreeBeanShellHandler {
     }
 
     @Test
-    public void requestAttributes() throws Exception {
+    public void request_attributes() throws Exception {
         handler.handle(get(TEST_URI01), response, context);
         for (String name : context.keySet()) {
             System.out.println("key: " + name + ", value: " + context.getAttribute(name));
@@ -200,7 +205,7 @@ public class BugFreeBeanShellHandler {
     }
 
     @Test
-    public void variablesAttribute() throws Exception {
+    public void variables_attribute() throws Exception {
         handler.handle(get(TEST_URI01), response, context);
         then((boolean) context.getAttribute("first")).isTrue();
         then(context.getAttribute("something")).isNull(); // just to make sure it
@@ -209,7 +214,7 @@ public class BugFreeBeanShellHandler {
     }
 
     @Test
-    public void variablesParameters() throws Exception {
+    public void variables_parameters() throws Exception {
         handler.handle(get(TEST_URI_PARAMETERS), response, context);
         then(context.get("p1")).isEqualTo("uno");
         then(context.get("p2")).isEqualTo("due");
@@ -217,7 +222,7 @@ public class BugFreeBeanShellHandler {
     }
 
     @Test
-    public void runningMultipleThreadInDifferentContexts() throws Exception {
+    public void running_multiple_thread_in_different_contexts() throws Exception {
         final HttpSessionContext CTX1 = new HttpSessionContext();
         final HttpSessionContext CTX2 = new HttpSessionContext();
         CTX1.setAttribute(HttpCoreContext.HTTP_CONNECTION, getConnection());
@@ -250,7 +255,8 @@ public class BugFreeBeanShellHandler {
         then(CTX2.get("view")).isEqualTo(t2.getName());
     }
 
-    // --------------------------------------------------------- Private methods
+    // --------------------------------------------------------- private methods
+    
     private BasicHttpConnection getConnection() throws IOException {
         BasicHttpConnection c = new BasicHttpConnection();
         c.bind(new TestSocket());
