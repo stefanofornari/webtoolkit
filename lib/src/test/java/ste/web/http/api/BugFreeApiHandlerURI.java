@@ -46,7 +46,7 @@ public class BugFreeApiHandlerURI extends BugFreeApiHandlerBase {
     /**
      * URI syntax:
      * <code>
-     *   /api/{application}/{action}/{handler}[/{resource}]
+     *   /api/{application}/{action}/[/{resource}]
      * </code>
      */
     @Test
@@ -63,7 +63,7 @@ public class BugFreeApiHandlerURI extends BugFreeApiHandlerBase {
     public void script_not_found() throws Exception {
         handler.handle(request(TEST_API_URI03), response, context);
         then(HttpStatus.SC_NOT_FOUND).isEqualTo(response.getStatusLine().getStatusCode());
-        then(response.getStatusLine().getReasonPhrase()).contains(new File(ROOT, "store/none/none.bsh").getAbsolutePath());
+        then(response.getStatusLine().getReasonPhrase()).contains(new File(ROOT, "store/none/get.bsh").getAbsolutePath());
     }
     
     @Test

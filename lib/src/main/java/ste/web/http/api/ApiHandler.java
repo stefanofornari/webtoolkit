@@ -84,7 +84,7 @@ public class ApiHandler  implements HttpRequestHandler {
     @Override
     public void handle(HttpRequest request, HttpResponse response, HttpContext context) throws HttpException, IOException {
         RRequest rr = null;
-        File scriptFile = null;
+        File actionScript = null, applicationScript = null;
         
         try {
             rr = new RRequest(request.getRequestLine());
@@ -93,17 +93,22 @@ public class ApiHandler  implements HttpRequestHandler {
                 log.fine(String.format("serving %s", rr.getPath()));
             }
 
-            scriptFile = new File(apiroot, getHandlerScript(rr));
-
+            applicationScript = new File(apiroot, getApplicationScript(rr));
+            actionScript = new File(apiroot, getActionScript(rr));
+            
             if (log.isLoggable(Level.FINE)) {
-                log.fine(String.format("script path: %s", scriptFile.getAbsolutePath()));
+                log.fine(String.format("application script path: %s", applicationScript.getAbsolutePath()));
+                log.fine(String.format("action script path: %s", actionScript.getAbsolutePath()));
             }
         
             Interpreter bsh = new Interpreter();
             BeanShellUtils.setup(bsh, request, response, (HttpSessionContext)context);
-            bsh.set(VAR_SOURCE, scriptFile.getAbsolutePath());
+            bsh.set(VAR_SOURCE, actionScript.getAbsolutePath());
             bsh.set(VAR_RREQUEST, rr);
-            bsh.eval(BeanShellUtils.getScript(scriptFile));
+            if (applicationScript.exists()) {
+                bsh.eval(BeanShellUtils.getScript(applicationScript));
+            }
+            bsh.eval(BeanShellUtils.getScript(actionScript));
             
             Object body = bsh.get(rr.getHandler());
             
@@ -139,15 +144,15 @@ public class ApiHandler  implements HttpRequestHandler {
             BeanShellUtils.cleanup(bsh, request);
             BeanShellUtils.setVariablesAttributes(bsh, context);
         } catch (FileNotFoundException e) {
-            response.setStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_FOUND, "Script " + scriptFile + " not found.");
+            response.setStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_FOUND, "Script " + actionScript + " not found.");
         } catch (EvalError x) {
             String msg = x.getMessage();
 
             if (log.isLoggable(Level.SEVERE)) {
-                log.severe(String.format("error evaluating: %s: %s", scriptFile, msg));
+                log.severe(String.format("error evaluating: %s: %s", actionScript, msg));
                 log.throwing(getClass().getName(), "handleError", x);
             }
-            throw new HttpException("error evaluating " + scriptFile + ": " + msg, x);
+            throw new HttpException("error evaluating " + actionScript + ": " + msg, x);
         } catch (URISyntaxException x) {
             response.setStatusLine(
                 HttpVersion.HTTP_1_1, 
@@ -165,8 +170,12 @@ public class ApiHandler  implements HttpRequestHandler {
     
     // --------------------------------------------------------- private methods
     
-    private String getHandlerScript(RRequest rr) {
-        return rr.getApplication() + '/' + rr.getHandler() + '/' + rr.getHandler() + ".bsh";
+    private String getApplicationScript(RRequest rr) {
+        return rr.getApplication() + '/' + rr.getHandler() + '/' + rr.getApplication() + ".bsh";
+    }
+    
+    private String getActionScript(RRequest rr) {
+        return rr.getApplication() + '/' + rr.getHandler() + '/' + rr.getAction() + ".bsh";
     }
     
 }

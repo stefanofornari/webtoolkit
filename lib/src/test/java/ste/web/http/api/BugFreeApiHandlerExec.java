@@ -52,6 +52,7 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
     
     public static final String TEST_URI_WITHEVALERROR = "/api/app/get/withevalerror";
     public static final String TEST_URI_WITHTARGETERROR = "/api/app/get/withtargeterror";
+    public static final String TEST_URI_APP_AND_ACTION = "/api/app/get/withappscript";
     public static final String TEST_URI_ITEMS1 = "/api/store/get/items";
     public static final String TEST_URI_ITEMS2 = "/api/store/get/items2";
     public static final String TEST_URI_ITEMS3 = "/api/store/get/items3";
@@ -106,7 +107,7 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
         then(context.get(VAR_SESSION)).isSameAs(context);
         then(context.get(VAR_LOG)).isNotNull();
         then(context.get(VAR_OUT)).isNotNull();
-        then(new File("src/test/apiroot/store/items/items.bsh").getAbsolutePath())
+        then(new File("src/test/apiroot/store/items/get.bsh").getAbsolutePath())
                 .isEqualTo(context.get(VAR_SOURCE));
     }
 
@@ -263,7 +264,15 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
         then(o.getString("two")).isEqualTo("papà");
     }
     
-    
+    @Test
+    /**
+     * We are supposed to execute the application script first if available and 
+     * then the action script (see https://github.com/stefanofornari/webtoolkit/wiki/WEB-API-SUPPORT)
+     */
+    public void exec_app_and_action_scripts() throws Exception {
+        handler.handle(request(TEST_URI_APP_AND_ACTION), response, context);
+        then(context.get("withappscript")).isEqualTo("app.bsh get.bsh");
+    }
 
     // --------------------------------------------------------- Private methods
 }

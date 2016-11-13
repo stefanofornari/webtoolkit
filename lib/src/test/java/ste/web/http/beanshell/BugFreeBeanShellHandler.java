@@ -199,7 +199,6 @@ public class BugFreeBeanShellHandler {
     public void request_attributes() throws Exception {
         handler.handle(get(TEST_URI01), response, context);
         for (String name : context.keySet()) {
-            System.out.println("key: " + name + ", value: " + context.getAttribute(name));
             then(context.get(BeanShellUtils.normalizeVariableName(name))).isEqualTo(context.getAttribute(name));
         }
     }

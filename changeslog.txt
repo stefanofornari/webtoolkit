@@ -1,3 +1,8 @@
+20161113
+- modified the way APIs are handled introducing application and command scripts
+  (see https://github.com/stefanofornari/webtoolkit/wiki/WEB-API-SUPPORT)
+- release v1.7.0
+
 20160313
 - introducing form-based authentication 
 - released v1.6.2

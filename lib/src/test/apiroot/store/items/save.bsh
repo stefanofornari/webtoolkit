@@ -1,0 +1,5 @@
+action = rrequest.action;
+resource = rrequest.resource;
+first = true;
+
+items = "{one: '111', two: '222'}";
