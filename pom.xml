@@ -19,7 +19,7 @@
 
     <groupId>ste.web</groupId>
     <artifactId>webtoolkit</artifactId>
-    <version>1.6.5-SNAPSHOT</version>
+    <version>1.6.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>WebToolkit</name>
