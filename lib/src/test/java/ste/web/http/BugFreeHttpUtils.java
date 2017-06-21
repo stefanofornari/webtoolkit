@@ -16,7 +16,8 @@
 
 package ste.web.http;
 
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import java.util.Base64;
+import java.util.Base64.Encoder;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpHeaders;
@@ -127,11 +128,13 @@ public class BugFreeHttpUtils {
             new ImmutablePair<>("hij", ""),
         };
         
+        Encoder b64 = Base64.getEncoder();
+        
         for (Pair<String, String> p: PAIRS) {
             then(HttpUtils.parseBasicAuth(
                 new BasicHeader(
                     HttpHeaders.AUTHORIZATION, 
-                    "Basic " + Base64.encode((p.getLeft() + ':' + p.getRight()).getBytes("UTF-8"))
+                    "Basic " + b64.encodeToString((p.getLeft() + ':' + p.getRight()).getBytes("UTF-8"))
                 )
             )).isEqualTo(p);
         }
@@ -140,28 +143,55 @@ public class BugFreeHttpUtils {
         then(HttpUtils.parseBasicAuth(
             new BasicHeader(
                 HttpHeaders.AUTHORIZATION, 
-                "Basic " + Base64.encode(p.getLeft().getBytes("UTF-8"))
+                "Basic " + b64.encodeToString(p.getLeft().getBytes("UTF-8"))
             )
         )).isEqualTo(p);
     }
     
     @Test
     public void parse_basic_auth_ko() throws Exception {
+        Encoder b64 = Base64.getEncoder();
+        
         final String[] PAIRS = new String[] {
             null,
             "",
             "Basic ",
-            "Basic " + Base64.encode("".getBytes("UTF-8")),
-            "Basic " + Base64.encode(":onlypassword".getBytes("UTF-8")),
-            "something " + Base64.encode("abc:123".getBytes("UTF-8")),
+            "Basic " + b64.encodeToString("".getBytes("UTF-8")),
+            "Basic " + b64.encodeToString(":onlypassword".getBytes("UTF-8")),
+            "something " + b64.encodeToString("abc:123".getBytes("UTF-8")),
             "somethingsimple"
         };
         
-        for (String s: PAIRS) {
-            System.out.println("checking " + s);
+        for (String P: PAIRS) {
             then(HttpUtils.parseBasicAuth(
-                new BasicHeader(HttpHeaders.AUTHORIZATION, s)
+                new BasicHeader(HttpHeaders.AUTHORIZATION, P)
             )).isNull();
+        }
+    }
+    
+    @Test
+    public void extract_jsessionid_from_cookies() throws Exception {
+        final String[] COOKIES = new String[] {
+          "JSESSIONID=123456;", "JSESSIONID=\"123456\"", "JSESSIONID=123456",
+            "COOKIE1=one;JSESSIONID=123456;COOKIE2=two", "COOKIE1=one;JSESSIONID=123456;",
+            "JSESSIONID=123456;COOKIE1=two"
+        };
+        
+        for(String C: COOKIES) {
+            System.out.println(C);
+            then(HttpUtils.extractSessionId(C)).isEqualTo("123456");
+        }
+    }
+    
+    @Test
+    public void extract_jsession_from_cookies_null_if_not_found() throws Exception {
+        final String[] COOKIES = new String[] {
+          "SESSIONID=123456;", "", null, " ", "\t"
+        };
+        
+        for(String C: COOKIES) {
+            System.out.println(C);
+            then(HttpUtils.extractSessionId(C)).isNull();
         }
     }
 }

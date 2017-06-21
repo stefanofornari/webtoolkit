@@ -118,6 +118,22 @@ public class HttpUtils {
         return pair;
     }
     
+    public static String extractSessionId(String cookies) {
+        final String DELIMITER = "JSESSIONID=";
+        final int DELIMITER_SIZE = DELIMITER.length();
+        
+        if (cookies != null) {
+            int i = cookies.lastIndexOf(DELIMITER);
+            if (i>=0) {
+                int e = cookies.indexOf(";", i+DELIMITER_SIZE);
+                return (e >= 0) ? cookies.substring(i+DELIMITER_SIZE, e).replace("\"", "") 
+                                : cookies.substring(i+DELIMITER_SIZE).replace("\"", "");
+            }
+        }
+        
+        return null;
+    }
+    
     // --------------------------------------------------------- private methods
     
     private static String getAuthString(final Header authorization) {
