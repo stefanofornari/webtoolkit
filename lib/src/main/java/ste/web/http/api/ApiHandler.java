@@ -31,11 +31,13 @@ import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.RequestLine;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.FileEntity;
@@ -52,23 +54,37 @@ import ste.web.http.beanshell.BeanShellUtils;
  */
 public class ApiHandler  implements HttpRequestHandler {
     
-    private final String apiroot;
+    private final String apiroot, webcontext;
     private final Logger log;
 
     /**
      * 
-     * @param apiroot - NOT NULL
+     * @param apiroot parent directory of the API tree structure (usually 
+     *                the web root) - NOT NULL
+     * @param webcontext optional webcontext that identifies a web call; id must
+     *                   not contain a tailing slah (e.g. /my/webcontext) - NOT NULL
      * 
      * @throws IllegalArgumentException if webroot is null
      * 
      */
-    public ApiHandler(final String apiroot) {
+    public ApiHandler(final String apiroot, final String webcontext) {
         if (apiroot == null) {
             throw new IllegalArgumentException("apiroot can not be null");
         }
         
+        this.webcontext = webcontext;
         this.apiroot = apiroot;
         this.log = Logger.getLogger(LOG_NAME);
+    }
+    
+    /**
+     * Shortcut for new ApiHandler(apiroot, "/api").
+     * 
+     * @param apiroot
+     * 
+     */
+    public ApiHandler(final String apiroot) {
+        this(apiroot, "/api");
     }
 
     /**
@@ -87,7 +103,7 @@ public class ApiHandler  implements HttpRequestHandler {
         File actionScript = null, applicationScript = null;
         
         try {
-            rr = new RRequest(request.getRequestLine());
+            rr = new RRequest(reduce(request.getRequestLine()));
 
             if (log.isLoggable(Level.FINE)) {
                 log.fine(String.format("serving %s", rr.getPath()));
@@ -176,6 +192,14 @@ public class ApiHandler  implements HttpRequestHandler {
     
     private String getActionScript(RRequest rr) {
         return rr.getApplication() + '/' + rr.getHandler() + '/' + rr.getAction() + ".bsh";
+    }
+    
+    private String reduce(RequestLine rl) {
+        if (StringUtils.isBlank(webcontext)) {
+            return rl.getUri();
+        }
+        
+        return rl.getUri().substring(webcontext.length());
     }
     
 }

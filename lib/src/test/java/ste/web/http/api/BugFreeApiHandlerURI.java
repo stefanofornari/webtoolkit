@@ -46,41 +46,45 @@ public class BugFreeApiHandlerURI extends BugFreeApiHandlerBase {
     /**
      * URI syntax:
      * <code>
-     *   /api/{application}/{action}/[/{resource}]
+     *   /{webcontext}/{application}/{action}/[/{resource}]
+     * 
+     *   examples:
+     *   /siteroot/api/shop/purchase/items/123
+     *   /content/api/publisher/get/ids
      * </code>
      */
     @Test
     public void identify_the_action() throws Throwable {
-        handler.handle(request(TEST_API_URI01), response, context);
+        handler.handle(request("/api" + TEST_API_URI01), response, context);
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
         then(context.getAttribute("action")).isEqualTo("save");
-        handler.handle(request(TEST_API_URI02), response, context);
+        handler.handle(request("/api" + TEST_API_URI02), response, context);
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
         then(context.getAttribute("action")).isEqualTo("get");
     }
     
     @Test
     public void script_not_found() throws Exception {
-        handler.handle(request(TEST_API_URI03), response, context);
+        handler.handle(request("/api" + TEST_API_URI03), response, context);
         then(HttpStatus.SC_NOT_FOUND).isEqualTo(response.getStatusLine().getStatusCode());
         then(response.getStatusLine().getReasonPhrase()).contains(new File(ROOT, "store/none/get.bsh").getAbsolutePath());
     }
     
     @Test
     public void get_handler_only_request() throws Exception {
-        handler.handle(request(TEST_API_URI04), response, context);
+        handler.handle(request("/api" + TEST_API_URI04), response, context);
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
         then(context.getAttribute("action")).isEqualTo("get");
     }
     
     @Test
     public void get_restful_resource() throws Exception {
-        handler.handle(request(TEST_API_URI01), response, context);
+        handler.handle(request("/api" + TEST_API_URI01), response, context);
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
         
         then(resource()).containsExactly("items", "10");
         
-        handler.handle(request(TEST_API_URI05), response, context);
+        handler.handle(request("/api" + TEST_API_URI05), response, context);
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
         
         then(resource()).containsExactly("items", "10", "sets", "5", "subsets", "2");
@@ -88,12 +92,12 @@ public class BugFreeApiHandlerURI extends BugFreeApiHandlerBase {
     
     @Test
     public void invalid_restful_request() throws Exception {
-        handler.handle(request(TEST_API_URI07), response, context);
+        handler.handle(request("/api" + TEST_API_URI07), response, context);
         then(HttpStatus.SC_BAD_REQUEST).isEqualTo(response.getStatusLine().getStatusCode());
         then(response.getStatusLine().getReasonPhrase())
             .contains("invalid rest request")
             .contains(TEST_API_URI07)
-            .contains(StringEscapeUtils.escapeHtml4("/api/<application>/<action>/<resource>"));
+            .contains(StringEscapeUtils.escapeHtml4("/<apicontext>/<application>/<action>/<resource>"));
         
     }
     
@@ -102,10 +106,19 @@ public class BugFreeApiHandlerURI extends BugFreeApiHandlerBase {
      * The result of the script shall be stored in a variable with the same name 
      * of the script. 
      */
-    public void rsult_in_script_name_var() throws Exception {
-        handler.handle(request(TEST_API_URI01), response, context);
+    public void result_in_script_name_var() throws Exception {
+        handler.handle(request("/api" + TEST_API_URI01), response, context);
         
         then(context.getAttribute("items")).isEqualTo("{one: '111', two: '222'}");
+    }
+    
+    @Test
+    public void provide_webcontext() throws Exception {
+        handler = new ApiHandler(new File(ROOT).getAbsolutePath(), "/mysite/sapi");
+        
+        handler.handle(request("/mysite/sapi" + TEST_API_URI01), response, context);
+        then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+        then(context.getAttribute("action")).isEqualTo("save");
     }
     
     // ------------------------------------------------------- protected methods

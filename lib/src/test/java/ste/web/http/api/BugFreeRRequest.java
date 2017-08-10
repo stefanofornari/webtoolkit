@@ -36,14 +36,14 @@ import org.junit.Test;
  */
 public class BugFreeRRequest {
     
-    public static String TEST_API_URI01 = "/api/store/save/items/10";
-    public static String TEST_API_URI02 = "/api/store/get/items/10";
-    public static String TEST_API_URI03 = "/api/store/get/none";
-    public static String TEST_API_URI04 = "/api/store/get/items";
-    public static String TEST_API_URI05 = "/api/store/get/items/10/sets/5/subsets/2";
-    public static String TEST_API_URI06 = "/api/notepad/get/notes/10/objects/5/lines/2";
-    public static String TEST_API_URI07 = "/api/store";
-    public static String TEST_API_URI08 = "/api/store/get";
+    public static String TEST_API_URI01 = "/store/save/items/10";
+    public static String TEST_API_URI02 = "/store/get/items/10";
+    public static String TEST_API_URI03 = "/store/get/none";
+    public static String TEST_API_URI04 = "/store/get/items";
+    public static String TEST_API_URI05 = "/store/get/items/10/sets/5/subsets/2";
+    public static String TEST_API_URI06 = "/notepad/get/notes/10/objects/5/lines/2";
+    public static String TEST_API_URI07 = "/store";
+    public static String TEST_API_URI08 = "/store/get";
     
     @Test
     public void constructors_with_null() throws Throwable {
@@ -110,7 +110,7 @@ public class BugFreeRRequest {
             then(x)
                 .hasMessageContaining("invalid rest request")
                 .hasMessageContaining(TEST_API_URI07)
-                .hasMessageContaining("/api/<application>/<action>/<resource>");
+                .hasMessageContaining("/<apicontext>/<application>/<action>/<resource>");
         }
         
         try {
@@ -120,7 +120,7 @@ public class BugFreeRRequest {
             then(x)
                 .hasMessageContaining("invalid rest request")
                 .hasMessageContaining(TEST_API_URI07)
-                .hasMessageContaining("/api/<application>/<action>/<resource>");
+                .hasMessageContaining("/<apicontext>/<application>/<action>/<resource>");
         }  
     }
     
