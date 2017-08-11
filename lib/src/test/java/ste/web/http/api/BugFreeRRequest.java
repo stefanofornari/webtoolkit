@@ -58,7 +58,7 @@ public class BugFreeRRequest {
             RRequest r = new RRequest((String)null);
             fail("missing invalid argument check");
         } catch (IllegalArgumentException x) {
-            then(x).hasMessage("URI may not be null");
+            then(x).hasMessage("request can not be null");
         }
     }
     

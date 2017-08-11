@@ -31,10 +31,7 @@ import org.apache.http.message.BasicRequestLine;
 import org.json.JSONObject;
 
 /**
- * TODO: basic type shall be String not RequestLine (i.e. this(new BasicRequestLine("POST", uri, HttpVersion.HTTP_1_1), body)
- * shall not be used when starting from a string)
  *
- * @author ste
  */
 public class RRequest {
     
@@ -55,26 +52,7 @@ public class RRequest {
      * 
      */
     public RRequest(final RequestLine request, final JSONObject body) throws URISyntaxException {
-        if (request == null) {
-            throw new IllegalArgumentException("request can not be null");
-        }
-        
-        uri = new URI(request.getUri());
-        String[] elements = StringUtils.split(uri.getPath(),'/');
-        
-        if (elements.length < 3) {
-            throw new URISyntaxException(
-                uri.toString(),
-                "invalid rest request; a valid rest url shall follow the syntax /<apicontext>/<application>/<action>/<resource>"
-            );
-        }
-        application = elements[0];
-             action = elements[1];
-            handler = elements[2];
-        
-        resource = Arrays.copyOfRange(elements, 2, elements.length);
-        
-        this.body = body;
+        this((request == null) ? null: request.getUri(), body);
     }
     
     /**
@@ -92,15 +70,35 @@ public class RRequest {
     
     /**
      * 
-     * @param uri - NOT NULL
+     * @param request - NOT NULL
      * @param body - MAY BE NULL
      * 
      * @throws URISyntaxException if the given request has an invalid URI
      * @throws IllegalArgumentException if request is null
      * 
      */
-    public RRequest(final String uri, final JSONObject body) throws URISyntaxException {
-        this(new BasicRequestLine("POST", uri, HttpVersion.HTTP_1_1), body);
+    public RRequest(final String request, final JSONObject body) throws URISyntaxException {
+        if (request == null) {
+            throw new IllegalArgumentException("request can not be null");
+        }
+        
+        //uri = new URI(request.getUri());
+        uri = new URI(request);
+        String[] elements = StringUtils.split(uri.getPath(),'/');
+        
+        if (elements.length < 3) {
+            throw new URISyntaxException(
+                uri.toString(),
+                "invalid rest request; a valid rest url shall follow the syntax /<apicontext>/<application>/<action>/<resource>"
+            );
+        }
+        application = elements[0];
+             action = elements[1];
+            handler = elements[2];
+        
+        resource = Arrays.copyOfRange(elements, 2, elements.length);
+        
+        this.body = body;
     }
     
     /**
