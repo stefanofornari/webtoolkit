@@ -21,36 +21,17 @@
  */
 package ste.web.beanshell.jetty;
 
-import ste.web.beanshell.*;
 import bsh.EvalError;
 import bsh.Interpreter;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Enumeration;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpCoreContext;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import static ste.web.beanshell.Constants.*;
-import ste.web.http.BasicHttpConnection;
-import ste.web.http.HttpSessionContext;
-import ste.web.http.HttpUtils;
 import ste.web.http.QueryString;
 
 /**
