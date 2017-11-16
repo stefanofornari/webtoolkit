@@ -30,8 +30,6 @@ import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.protocol.HttpCoreContext;
-import static org.assertj.core.api.Assertions.fail;
-import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import org.junit.Before;
 import ste.web.beanshell.BeanShellError;
@@ -41,10 +39,6 @@ import static ste.web.beanshell.Constants.*;
 import ste.web.http.BasicHttpConnection;
 import ste.web.http.HttpSessionContext;
 import ste.xtest.net.TestSocket;
-import static org.assertj.core.api.Assertions.fail;
-import static org.assertj.core.api.BDDAssertions.then;
-import static org.assertj.core.api.Assertions.fail;
-import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -153,18 +147,6 @@ public class BugFreeBeanShellHandler {
         }
     }
 
-    /**
-     * TODO: Not doable with httpcore; do we need it?
-     *
-     * @throws Exception
-     */
-    /*
-     @Test
-     public void execBshOnly() throws Exception {
-     handler.handle(get(TEST_URI08), response, context);
-     assertFalse(request.isHandled());
-     }
-     */
     @Test
     public void set_main_variables() throws Exception {
         BasicHttpRequest request = get(TEST_URI01);
