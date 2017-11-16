@@ -127,10 +127,15 @@ public class BugFreeBeanShellHandler {
 
     @Test
     public void script_error() throws Exception {
+        //
+        // We shall not expose to the client any details of a server error, while
+        // the server log shall contains as many details as possible
+        //
         try {
             handler.handle(get(TEST_URI06), response, context);
             fail(TEST_URI06 + " error shall throw a HttpException");
         } catch (HttpException x) {
+            then(x).hasMessage("server erorr processing the resource - see server log for details");
             then(x.getCause()).isInstanceOf(BeanShellError.class);
         }
 
@@ -138,9 +143,7 @@ public class BugFreeBeanShellHandler {
             handler.handle(get(TEST_URI07), response, context);
             fail(TEST_URI07 + " error shall throw a HttpException");
         } catch (HttpException x) {
-            //
-            // OK
-            //
+            then(x).hasMessage("server erorr processing the resource - see server log for details");
             then(x.getCause()).isInstanceOf(BeanShellError.class);
             BeanShellError cause = (BeanShellError)x.getCause();
             then(cause.getCause()).isInstanceOf(IOException.class);

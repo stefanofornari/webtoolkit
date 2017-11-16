@@ -41,6 +41,8 @@ public class FileHandler implements HttpRequestHandler  {
 
     protected final String docRoot;
     protected final String webContext;
+    
+    protected String[] excludePatterns;
 
     /**
      * Creates a new FileHandler that reads files located under docRoot, which
@@ -58,6 +60,7 @@ public class FileHandler implements HttpRequestHandler  {
         }
         this.docRoot = docRoot;
         this.webContext = webContext;
+        this.excludePatterns = new String[0];
     }
 
 
@@ -65,6 +68,7 @@ public class FileHandler implements HttpRequestHandler  {
         this(docRoot, null);
     }
 
+    @Override
     public void handle(
             final HttpRequest request,
             final HttpResponse response,
@@ -73,6 +77,14 @@ public class FileHandler implements HttpRequestHandler  {
         checkHttpMethod(request);
         
         String target = request.getRequestLine().getUri();
+        
+        for (String exclude: excludePatterns) {
+            if (target.matches(exclude)) {
+                notFound(target, response);
+                
+                return;
+            }
+        }
         if (StringUtils.isNotBlank(webContext) && target.startsWith(webContext)) {
             target = target.substring(webContext.length());
         }
@@ -91,12 +103,7 @@ public class FileHandler implements HttpRequestHandler  {
         }
         final File file = new File(this.docRoot, uri.getPath());
         if (!file.exists()) {
-            response.setStatusCode(HttpStatus.SC_NOT_FOUND);
-            StringEntity entity = new StringEntity(
-                    "<html><body><h1>File " + file.getPath() +
-                    " not found</h1></body></html>",
-                    ContentType.TEXT_HTML);
-            response.setEntity(entity);
+            notFound(target, response);
         } else if (!file.canRead() || file.isDirectory()) {
             response.setStatusCode(HttpStatus.SC_FORBIDDEN);
             StringEntity entity = new StringEntity(
@@ -115,6 +122,18 @@ public class FileHandler implements HttpRequestHandler  {
             response.setEntity(body);
         }
     }
+    
+    public FileHandler exclude(String... excludePatterns) {
+        this.excludePatterns = (excludePatterns == null) 
+                             ? new String[0]
+                             : excludePatterns;
+        
+        return this;
+    }
+    
+    public String[] getExcludes() {
+        return excludePatterns;
+    }
 
     // --------------------------------------------------------- private methods
     
@@ -123,5 +142,14 @@ public class FileHandler implements HttpRequestHandler  {
         if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
             throw new MethodNotSupportedException(method + " method not supported");
         }
+    }
+    
+    private void notFound(String target, final HttpResponse response) {
+        response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+        StringEntity entity = new StringEntity(
+                "<html><body><h1>File " + target +
+                " not found</h1></body></html>",
+                ContentType.TEXT_HTML);
+        response.setEntity(entity);
     }
 }

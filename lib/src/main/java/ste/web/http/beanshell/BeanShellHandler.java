@@ -173,7 +173,13 @@ public class BeanShellHandler implements HttpRequestHandler {
                 log.severe(String.format("error evaluating: %s: %s", uri, msg));
                 log.throwing(getClass().getName(), "handleError", x);
             }
-            throw new HttpException("error evaluating " + uri + ": " + msg, new BeanShellError(x));
+            //
+            // We shall not expose to the client any details of a server error
+            //
+            throw new HttpException(
+                "server erorr processing the resource - see server log for details",
+                new BeanShellError(x)
+            );
         }
     }
 

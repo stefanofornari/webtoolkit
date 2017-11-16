@@ -85,7 +85,7 @@ public class BugFreeFileHandler {
         h.handle(request, response, new HttpSessionContext());
         
         then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
-        then(IOUtils.toString(response.getEntity().getContent())).contains("src/test/mime/none.bin");
+        then(IOUtils.toString(response.getEntity().getContent())).contains("/none.bin");
     }
     
     @Test
@@ -93,8 +93,7 @@ public class BugFreeFileHandler {
         FileHandler h = new FileHandler("src/test/mime");
         
         BasicHttpResponse response = HttpUtils.getBasicResponse();
-        
-        
+
         for (String q: new String[] {"", "p1", "p1=v1", "p1=v1&", "p1=v1&p2=v2"}) {
             BasicHttpRequest request = HttpUtils.getSimpleGet("/test.html?");
                 
@@ -103,4 +102,39 @@ public class BugFreeFileHandler {
             then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
         }
     }
+    
+    @Test
+    public void exclude_files_in_exclude_pattern() throws Exception {
+        FileHandler h = new FileHandler("src/test/webroot", "null");
+        
+        h.exclude("(.*)\\.bsh");
+        
+        BasicHttpResponse response = HttpUtils.getBasicResponse();
+        BasicHttpRequest request = HttpUtils.getSimpleGet("/firstlevelscript.bsh");
+        h.handle(request, response, new HttpSessionContext());
+        then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
+        
+        request = HttpUtils.getSimpleGet("/some/parameters.bsh");
+        h.handle(request, response, new HttpSessionContext());
+        then(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
+    }
+    
+    @Test
+    public void set_exclude_pattern() {
+        final String TEST_PATTERN1 = "(.*)\\.bsh";
+        final String TEST_PATTERN2 = "[a-z]";
+                
+        FileHandler h = new FileHandler("src/test/webroot", "null");
+        then(h.getExcludes()).isEmpty();
+        
+        then(h.exclude(TEST_PATTERN1)).isSameAs(h);
+        then(h.getExcludes()).containsExactly(TEST_PATTERN1);
+        
+        h.exclude(TEST_PATTERN1, TEST_PATTERN2);
+        then(h.getExcludes()).containsExactly(TEST_PATTERN1, TEST_PATTERN2);
+        
+        h.exclude(null);
+        then(h.getExcludes()).isEmpty();
+    }
+    
 }

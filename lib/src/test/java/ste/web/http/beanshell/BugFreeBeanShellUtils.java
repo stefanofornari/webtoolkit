@@ -22,7 +22,6 @@
 package ste.web.http.beanshell;
 
 import bsh.Interpreter;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
@@ -31,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
-import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;

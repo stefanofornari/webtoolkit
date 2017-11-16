@@ -1,3 +1,8 @@
+20171116
+- FileHandler can now exclude files by a regexp (with method exclude())
+- errors due to script executions are not exposed anymore in the HTTP response
+  in both BeanShellHandler and ApiHandler
+
 20170811
 - introducing apicontex (a prefix before the actual restful request)
 - released v1.7.2

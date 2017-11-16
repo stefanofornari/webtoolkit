@@ -37,7 +37,10 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.json.JSONObject;
 import org.junit.Test;
+import ste.web.beanshell.BeanShellError;
 import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_QUERY_STRING;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI06;
+import static ste.web.beanshell.BugFreeBeanShellUtils.TEST_URI07;
 import static ste.web.beanshell.Constants.*;
 import ste.web.http.HttpSessionContext;
 import ste.web.http.HttpUtils;
@@ -80,10 +83,15 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
 
     @Test
     public void script_error() throws IOException {
+        //
+        // We shall not expose to the client any details of a server error, while
+        // the server log shall contains as many details as possible
+        //
         try {
             handler.handle(request(TEST_URI_WITHEVALERROR), response, context);
             fail(TEST_URI_WITHEVALERROR + " error shall throw a HttpException");
         } catch (HttpException x) {
+            then(x).hasMessage("server erorr processing the resource - see server log for details");
             then(x.getCause()).isInstanceOf(EvalError.class);
         }
 
@@ -91,6 +99,7 @@ public class BugFreeApiHandlerExec extends BugFreeApiHandlerBase {
             handler.handle(request(TEST_URI_WITHTARGETERROR), response, context);
             fail(TEST_URI_WITHTARGETERROR + " error shall throw a HttpException");
         } catch (HttpException x) {
+            then(x).hasMessage("server erorr processing the resource - see server log for details");
             then(x.getCause()).isInstanceOf(EvalError.class);
         } catch (Exception x) {
             fail(TEST_URI_WITHTARGETERROR + " error shall throw a HttpException instead of " + x);

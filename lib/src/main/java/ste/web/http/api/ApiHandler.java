@@ -43,6 +43,7 @@ import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import ste.web.beanshell.BeanShellError;
 import ste.web.http.HttpSessionContext;
 import ste.web.http.MimeUtils;
 import static ste.web.http.api.Constants.*;
@@ -168,7 +169,12 @@ public class ApiHandler  implements HttpRequestHandler {
                 log.severe(String.format("error evaluating: %s: %s", actionScript, msg));
                 log.throwing(getClass().getName(), "handleError", x);
             }
-            throw new HttpException("error evaluating " + actionScript + ": " + msg, x);
+            //
+            // We shall not expose to the client any details of a server error
+            //
+            throw new HttpException(
+                "server erorr processing the resource - see server log for details", x
+            );
         } catch (URISyntaxException x) {
             response.setStatusLine(
                 HttpVersion.HTTP_1_1, 
