@@ -40,7 +40,7 @@ import ste.web.http.HttpUtils;
 public class BugFreeFileHandler {
     
     @Test
-    public void mimeTypeBasedOnFileExtension() throws Exception {
+    public void mime_type_based_on_file_extension() throws Exception {
         FileHandler h = new FileHandler("src/test/mime");
         
         BasicHttpRequest request = HttpUtils.getSimpleGet("/test.txt");
@@ -63,7 +63,7 @@ public class BugFreeFileHandler {
     }
     
     @Test
-    public void defaultMimeTypeIsOctetBinary() throws Exception {
+    public void default_mime_type_is_octet_binary() throws Exception {
         FileHandler h = new FileHandler("src/test/mime");
         
         BasicHttpRequest request = HttpUtils.getSimpleGet("/test.bin");
@@ -76,7 +76,7 @@ public class BugFreeFileHandler {
     }
     
     @Test
-    public void notFound() throws Exception {
+    public void not_found() throws Exception {
         FileHandler h = new FileHandler("src/test/mime");
         
         BasicHttpRequest request = HttpUtils.getSimpleGet("/none.bin");
@@ -89,7 +89,7 @@ public class BugFreeFileHandler {
     }
     
     @Test
-    public void ignoreQueryString() throws Exception {
+    public void ignore_query_string() throws Exception {
         FileHandler h = new FileHandler("src/test/mime");
         
         BasicHttpResponse response = HttpUtils.getBasicResponse();
