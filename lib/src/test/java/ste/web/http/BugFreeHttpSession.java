@@ -98,14 +98,24 @@ public class BugFreeHttpSession {
     }
     
     @Test
-    public void header_with_JSESSIONID() {
+    public void header_with_session_id_name() {
         HttpSession s = new HttpSession();
         
         SessionHeader h = s.getHeader();
         HttpCookie cookie = HttpCookie.parse(h.toString()).get(0);
         
-        then(cookie.getName()).isEqualTo("JSESSIONID");
+        then(cookie.getName()).isEqualTo(SessionHeader.DEFAULT_SESSION_HEADER);
         then(cookie.getValue()).isEqualTo(s.getId());
+        
+        s = new HttpSession("testid1"); h = s.getHeader();
+        cookie = HttpCookie.parse(h.toString()).get(0);
+        
+        then(cookie.getName()).isEqualTo("testid1");
+        
+        s = new HttpSession("id2"); h = s.getHeader();
+        cookie = HttpCookie.parse(h.toString()).get(0);
+        
+        then(cookie.getName()).isEqualTo("id2");
     }
     
     @Test

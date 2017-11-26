@@ -16,8 +16,10 @@
 package ste.web.http;
 
 import org.apache.http.HeaderElement;
+import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
+import static ste.xtest.Constants.BLANKS;
 
 /**
  * TODO: see cobertura report
@@ -27,22 +29,43 @@ import org.junit.Test;
 public class BugFreeSessionHeader {
     
     @Test
-    public void header_has_session_path_and_secure() {
+    public void header_has_session_path_secure_httponly() {
         SessionHeader h = new SessionHeader("12345");
         then(h.getName()).isEqualTo("Set-Cookie");
-        then(h.toString()).isEqualTo(h.SESSION_HEADER + "=12345; Path=/; Secure");
+        then(h.toString()).isEqualTo(h.DEFAULT_SESSION_HEADER + "=12345; Path=/; Secure; HttpOnly");
         
         h = new SessionHeader("67890");
-        then(h.toString()).isEqualTo(h.SESSION_HEADER + "=67890; Path=/; Secure");
+        then(h.toString()).isEqualTo(h.DEFAULT_SESSION_HEADER + "=67890; Path=/; Secure; HttpOnly");
     }
     
     @Test
-    public void getElements() {
+    public void get_elements() {
         SessionHeader h = new SessionHeader("12345");
         HeaderElement[] elements = h.getElements();
         
         then(elements).isNotNull().hasSize(1);
         then(elements[0].getName()).isEqualTo(h.getName());
         then(elements[0].getValue()).isEqualTo(h.getValue());
+    }
+    
+    @Test
+    public void provide_session_id_name() {
+        SessionHeader h = new SessionHeader("testid1", "12345");
+        then(h.toString()).isEqualTo("testid1=12345; Path=/; Secure; HttpOnly");
+        
+        h = new SessionHeader("testid2", "67890");
+        then(h.toString()).isEqualTo("testid2=67890; Path=/; Secure; HttpOnly");
+    }
+    
+    @Test
+    public void invalid_session_id_names() {
+        for (String BLANK: BLANKS) {
+            try {
+                 new SessionHeader(BLANK, null);
+                 fail("missing argument check");
+            } catch (IllegalArgumentException x) {
+                then(x).hasMessage("session id name can not be null");
+            }
+        }
     }
 }

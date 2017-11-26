@@ -16,6 +16,7 @@
 
 package ste.web.http;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.ParseException;
@@ -26,12 +27,28 @@ import org.apache.http.message.BasicHeaderElement;
  */
 public class SessionHeader implements Header {
     
-    public static final String SESSION_HEADER = "JSESSIONID";
+    public static final String DEFAULT_SESSION_HEADER = "HTTPSID";
     
+    private final String name;
     private final String sessionId;
     
-    public SessionHeader(final String sessionId) {
+    /**
+     * 
+     * @param name the name of the session id cookie - NOT BLANK
+     * @param sessionId the session id value - MAY BE BLANK
+     * 
+     * @throws IllegalArgumentException if name is BLANK
+     */
+    public SessionHeader(final String name, final String sessionId) {
+        if (StringUtils.isBlank(name)) {
+            throw new IllegalArgumentException("session id name can not be null");
+        }
+        this.name = name;
         this.sessionId = sessionId;
+    }
+    
+    public SessionHeader(final String sessionId) {
+        this(DEFAULT_SESSION_HEADER, sessionId);
     }
 
     @Override
@@ -41,7 +58,7 @@ public class SessionHeader implements Header {
 
     @Override
     public String getValue() {
-        return String.format("%s=%s; Path=/; Secure", SESSION_HEADER, sessionId);
+        return String.format("%s=%s; Path=/; Secure; HttpOnly", name, sessionId);
     }
 
     @Override

@@ -118,8 +118,8 @@ public class HttpUtils {
         return pair;
     }
     
-    public static String extractSessionId(String cookies) {
-        final String DELIMITER = "JSESSIONID=";
+    public static String extractSessionId(String name, String cookies) {
+        final String DELIMITER = name + "=";
         final int DELIMITER_SIZE = DELIMITER.length();
         
         if (cookies != null) {
@@ -132,6 +132,10 @@ public class HttpUtils {
         }
         
         return null;
+    }
+    
+    public static String extractSessionId(String cookies) {
+        return extractSessionId(SessionHeader.DEFAULT_SESSION_HEADER, cookies);
     }
     
     // --------------------------------------------------------- private methods

@@ -29,16 +29,22 @@ import org.apache.http.protocol.HttpContext;
 public class HttpSession
 implements HttpContext {
     
-    private Map<String, Object> data;
+    private String sessionIdName;
     private String id;
+    private Map<String, Object> data;
     private boolean expired;
     private Principal principal;
 
-    public HttpSession() {
+    public HttpSession(String sessionIdName) {
+        this.sessionIdName = sessionIdName;
         this.id = UUID.randomUUID().toString().replace("-", "");
         this.expired = false;
         this.data = new HashMap<>();
         this.principal = null;
+    }
+    
+    public HttpSession() {
+        this(SessionHeader.DEFAULT_SESSION_HEADER);
     }
     
     /**
@@ -48,7 +54,7 @@ implements HttpContext {
      */
     public SessionHeader getHeader() {
         checkExpired();
-        return new SessionHeader(id);
+        return new SessionHeader(sessionIdName, id);
     }
     
     /**

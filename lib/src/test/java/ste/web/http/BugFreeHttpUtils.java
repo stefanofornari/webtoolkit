@@ -170,16 +170,15 @@ public class BugFreeHttpUtils {
     }
     
     @Test
-    public void extract_jsessionid_from_cookies() throws Exception {
-        final String[] COOKIES = new String[] {
-          "JSESSIONID=123456;", "JSESSIONID=\"123456\"", "JSESSIONID=123456",
-            "COOKIE1=one;JSESSIONID=123456;COOKIE2=two", "COOKIE1=one;JSESSIONID=123456;",
-            "JSESSIONID=123456;COOKIE1=two"
-        };
-        
-        for(String C: COOKIES) {
+    public void extract_session_id_from_cookies() throws Exception {
+        for(String C: getCookies(SessionHeader.DEFAULT_SESSION_HEADER)) {
             System.out.println(C);
             then(HttpUtils.extractSessionId(C)).isEqualTo("123456");
+        }
+        
+        for(String C: getCookies("testid1")) {
+            System.out.println(C);
+            then(HttpUtils.extractSessionId("testid1", C)).isEqualTo("123456");
         }
     }
     
@@ -193,5 +192,18 @@ public class BugFreeHttpUtils {
             System.out.println(C);
             then(HttpUtils.extractSessionId(C)).isNull();
         }
+    }
+    
+    // --------------------------------------------------------- private methods
+    
+    private String[] getCookies(String name) {
+        return new String[] {
+          name + "=123456;", 
+          name + "=\"123456\"", 
+          name + "=123456",
+          "COOKIE1=one;" + name + "=123456;COOKIE2=two", 
+          "COOKIE1=one;" + name + "=123456;",
+          name + "=123456;COOKIE1=two"
+        };
     }
 }
