@@ -43,7 +43,6 @@ import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
-import ste.web.beanshell.BeanShellError;
 import ste.web.http.HttpSessionContext;
 import ste.web.http.MimeUtils;
 import static ste.web.http.api.Constants.*;
