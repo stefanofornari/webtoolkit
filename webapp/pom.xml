@@ -19,7 +19,7 @@
 
     <groupId>ste.web</groupId>
     <artifactId>beanshellweb</artifactId>
-    <version>1.8.1-SNAPSHOT</version>
+    <version>1.9.0</version>
     <packaging>jar</packaging>
 
     <name>BeanSheellWeb</name>
