@@ -1,3 +1,7 @@
+201701202
+- name of session parameter made configurable
+- released v1.9.0
+
 20171116
 - FileHandler can now exclude files by a regexp (with method exclude())
 - errors due to script executions are not exposed anymore in the HTTP response

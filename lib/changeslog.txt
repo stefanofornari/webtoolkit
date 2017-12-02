@@ -1,3 +1,16 @@
+201701202
+- name of session parameter made configurable
+
+20171116
+- FileHandler can now exclude files by a regexp (with method exclude())
+- errors due to script executions are not exposed anymore in the HTTP response
+  in both BeanShellHandler and ApiHandler
+- released v1.8.0
+
+20170811
+- introducing apicontex (a prefix before the actual restful request)
+- released v1.7.2
+
 20160501
 - updated content type file
 - released v1.6.3
