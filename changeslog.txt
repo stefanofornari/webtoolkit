@@ -1,3 +1,7 @@
+20180427
+- upgradeing Http Core to 4.4.9
+- released v1.9.1
+
 201701202
 - name of session parameter made configurable
 - released v1.9.0
