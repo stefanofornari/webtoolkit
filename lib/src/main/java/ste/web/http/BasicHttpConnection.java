@@ -18,6 +18,7 @@ package ste.web.http;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.Socket;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import org.apache.http.HttpRequest;
@@ -50,6 +51,20 @@ public class BasicHttpConnection extends org.apache.http.impl.DefaultBHttpServer
             requestParserFactory, responseWriterFactory
         );
         writer = null;
+    }
+    
+    @Override
+    public void shutdown() throws IOException {
+        final Socket socket = getSocket();
+        if (socket != null) {
+            // force abortive close (RST)
+            try {
+                socket.setSoLinger(true, 1);
+            } catch (final IOException ex) {
+            } finally {
+                socket.close();
+            }
+        }
     }
     
     public Writer getWriter() throws IOException {

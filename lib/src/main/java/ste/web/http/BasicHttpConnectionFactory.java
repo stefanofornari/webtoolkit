@@ -20,7 +20,6 @@ import java.net.Socket;
 import org.apache.http.HttpConnectionFactory;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.Immutable;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.entity.ContentLengthStrategy;
 import org.apache.http.impl.ConnSupport;
@@ -32,7 +31,6 @@ import org.apache.http.io.HttpMessageWriterFactory;
  *
  * @author ste
  */
-@Immutable
 public class BasicHttpConnectionFactory 
 implements HttpConnectionFactory<BasicHttpConnection> {
   
