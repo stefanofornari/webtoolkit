@@ -1,4 +1,8 @@
-201701202
+20180825
+- releasing to maven central
+- v2.0.0
+
+20171202
 - name of session parameter made configurable
 
 20171116
@@ -16,7 +20,7 @@
 - released v1.6.3
 
 20160313
-- introducing form-based authentication 
+- introducing form-based authentication
 - released v1.6.2
 
 20150715
